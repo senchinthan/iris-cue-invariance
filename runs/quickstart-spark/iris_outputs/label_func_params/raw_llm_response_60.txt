@@ -1,0 +1,39 @@
+```json
+[
+  {
+    "package": "spark.embeddedserver.jetty",
+    "class": "SocketConnectorFactory",
+    "method": "createSecureSocketConnector",
+    "signature": "Server createSecureSocketConnector(Server server, String host, int port, SslStores sslStores)",
+    "tainted_input": ["host", "port", "sslStores"]
+  },
+  {
+    "package": "spark.embeddedserver.jetty",
+    "class": "SocketConnectorFactory",
+    "method": "createSocketConnector",
+    "signature": "ServerConnector createSocketConnector(Server server, String host, int port)",
+    "tainted_input": ["host", "port"]
+  },
+  {
+    "package": "spark.embeddedserver.jetty.websocket",
+    "class": "WebSocketCreatorFactory",
+    "method": "create",
+    "signature": "WebSocketCreator create(WebSocketHandlerWrapper handlerWrapper)",
+    "tainted_input": ["handlerWrapper"]
+  },
+  {
+    "package": "spark.embeddedserver.jetty.websocket",
+    "class": "WebSocketServletContextHandlerFactory",
+    "method": "create",
+    "signature": "ServletContextHandler create(Map<String,WebSocketHandlerWrapper> webSocketHandlers, Optional<Integer> webSocketIdleTimeoutMillis)",
+    "tainted_input": ["webSocketHandlers", "webSocketIdleTimeoutMillis"]
+  },
+  {
+    "package": "spark.route",
+    "class": "HttpMethod",
+    "method": "get",
+    "signature": "HttpMethod get(String methodStr)",
+    "tainted_input": ["methodStr"]
+  }
+]
+```

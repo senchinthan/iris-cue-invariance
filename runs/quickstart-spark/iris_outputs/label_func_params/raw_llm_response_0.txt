@@ -1,0 +1,74 @@
+```json
+[
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "params",
+    "signature": "String params(String param)",
+    "tainted_input": ["param"]
+  },
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "queryParams",
+    "signature": "String queryParams(String queryParam)",
+    "tainted_input": ["queryParam"]
+  },
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "queryParamsValues",
+    "signature": "String[] queryParamsValues(String queryParam)",
+    "tainted_input": ["queryParam"]
+  },
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "queryParamOrDefault",
+    "signature": "String queryParamOrDefault(String queryParam, String defaultValue)",
+    "tainted_input": ["queryParam"]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "body",
+    "signature": "void body(String body)",
+    "tainted_input": ["body"]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "header",
+    "signature": "void header(String header, String value)",
+    "tainted_input": ["header", "value"]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "cookie",
+    "signature": "void cookie(String name, String value)",
+    "tainted_input": ["name", "value"]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "redirect",
+    "signature": "void redirect(String location)",
+    "tainted_input": ["location"]
+  },
+  {
+    "package": "spark",
+    "class": "Redirect",
+    "method": "get",
+    "signature": "void get(String fromPath, String toPath)",
+    "tainted_input": ["fromPath", "toPath"]
+  },
+  {
+    "package": "spark",
+    "class": "Redirect",
+    "method": "put",
+    "signature": "void put(String fromPath, String toPath)",
+    "tainted_input": ["fromPath", "toPath"]
+  }
+]
+```

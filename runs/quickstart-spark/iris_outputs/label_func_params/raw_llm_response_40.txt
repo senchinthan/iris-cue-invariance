@@ -1,0 +1,39 @@
+```json
+[
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "get",
+    "signature": "void get(String path, Route route)",
+    "tainted_input": ["path", "route"]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "post",
+    "signature": "void post(String path, Route route)",
+    "tainted_input": ["path", "route"]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "patch",
+    "signature": "void patch(String path, Route route)",
+    "tainted_input": ["path", "route"]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "exception",
+    "signature": "void exception(Class<T> exceptionClass, ExceptionHandler<? super T> handler)",
+    "tainted_input": ["exceptionClass", "handler"]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "halt",
+    "signature": "void halt(int status, String body)",
+    "tainted_input": ["status", "body"]
+  }
+]
+```
