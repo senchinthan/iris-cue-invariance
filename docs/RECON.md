@@ -304,3 +304,10 @@ IRIS resumes from `llm_labelled_source_func_params.json`).
 
 **For information (no decision needed):** `num_ctx=8192` with `num_gpu=99` (§5, `docs/VERSIONS.md`); the GPU is throttled by
 Windows (`0x24` = SW power cap + SW thermal), so please put the laptop on AC power with a performance profile before the pilot.
+
+### GATE 1 answers (user, 2026-11-20)
+* **Q1 → (a): keep the 4 annotated CVEs.** Implement in Phase 3: `patches/0002-cve-id-from-slug.patch` (regex CVE ID; use the
+  `build_info.csv` / Docker-tag slug spelling), generate their `package-names/*.txt`, container route only.
+* **Q2 → (a): keep IRIS's fix-commit README for BASE** and pre-register the per-project covariate `readme_mentions_vuln`
+  (keyword scan `vulnerab|CVE|security|exploit|upgrade` on `readme_head.txt`), reported alongside `M_README`.
+* **Q3 (approve the §8 interception design): not yet explicitly answered** — confirm before starting Phase 4.
