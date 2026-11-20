@@ -1,0 +1,24 @@
+{
+  "timestamp": "2026-11-20T17:07:11.784649+00:00",
+  "ollama_version": "0.40.16",
+  "runs": [
+    {
+      "model": "qwen3:4b",
+      "num_ctx": 8192,
+      "num_gpu": null,
+      "prompt_eval_count": 4007,
+      "eval_count": 256,
+      "prompt_tokens_per_s": 124.37227617498668,
+      "eval_tokens_per_s": 14.131597855353382,
+      "load_duration_s": 42.833895943,
+      "wall_s": 93.34,
+      "gpu_fraction": 1.0,
+      "fully_on_gpu": true,
+      "ps_size_bytes": 3225136659,
+      "ps_size_vram_bytes": 3225136659,
+      "ps_context_length": 8192,
+      "nvidia_smi_used_mib": 3219
+    }
+  ],
+  "chosen_num_ctx": 8192
+}

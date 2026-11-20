@@ -1,0 +1,58 @@
+=== fetch_and_build 2026-11-20T17:17:38+00:00
+[fetch_one] Cloning repository from https://github.com/perwendel/spark...
+[fetch_one] Fetching and checking out commit 5316c0d0f057daaf556c3907c20df975f7bf8a8a...
+[fetch_one] No patch found; skipping patching.
+[fetch_one] Successfully fetched perwendel__spark_CVE-2018-9159_2.7.1
+[build_one] Checking build info from /home/senchinthan/capstone/iris/src/../data/build_info.csv
+[build_one] Found successful build configuration: {'jdk': '8', 'mvn': '3.5.0', 'gradlew': 0}
+[build_one] Using global build configuration: {'jdk': '8', 'mvn': '3.5.0', 'gradlew': 0}
+[build_one] Building perwendel__spark_CVE-2018-9159_2.7.1 with Maven 3.5.0 and JDK 8...
+[build_one] JAVA_PATH: /home/senchinthan/opt/jdk8u514-b01/
+[build_one] MAVEN_PATH: /home/senchinthan/opt/apache-maven-3.5.0/
+[build_one] Build succeeded for perwendel__spark_CVE-2018-9159_2.7.1 with Maven 3.5.0 and JDK 8
+====== Fetching and Building 1 Repositories ======
+== Processing perwendel__spark_CVE-2018-9159_2.7.1 ==
+== Fetching perwendel__spark_CVE-2018-9159_2.7.1 ==
+== Done fetching perwendel__spark_CVE-2018-9159_2.7.1 ==
+== Building perwendel__spark_CVE-2018-9159_2.7.1 ==
+== Done fetching and building perwendel__spark_CVE-2018-9159_2.7.1 ==
+
+====== Summary ======
+Successfully processed: 1/1
+
+real	1m34.862s
+user	0m34.850s
+sys	0m4.892s
+FETCH_BUILD_EXIT=0
+=== build_codeql_dbs 2026-11-20T17:19:12+00:00
+Maven path set to: /home/senchinthan/opt/apache-maven-3.5.0/
+JAVA_HOME set to: /home/senchinthan/opt/jdk8u514-b01/
+
+Environment variables for CodeQL database creation:
+PATH: /home/senchinthan/opt/jdk8u514-b01/bin:/home/senchinthan/opt/apache-maven-3.5.0/bin:/home/senchinthan/capstone/iris/codeql:/home/senchinthan/miniconda3/envs/iris/bin:/home/senchinthan/miniconda3/condabin:/home/senchinthan/.local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/lib/wsl/lib:/mnt/c/Program Files/Common Files/Oracle/Java/javapath:/mnt/c/Program Files/Java/jdk-24/bin/bin:/mnt/c/hadoop-2.8.0/bin:/mnt/c/python312/scripts:/mnt/c/python312:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/system32/windowspowershell/v1.0:/mnt/c/WINDOWS/system32/openssh:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/system32/windowspowershell/v1.0:/mnt/c/WINDOWS/system32/openssh:/mnt/c/program files/dotnet:/mnt/c/programdata/chocolatey/bin:/mnt/c/users/senchinthan/appdata/roaming/nvm:/mnt/c/program files/nodejs:/mnt/c/program files/git/cmd:/mnt/c/WINDOWS/system32:/mnt/c/WINDOWS:/mnt/c/WINDOWS/System32/Wbem:/mnt/c/WINDOWS/system32/windowspowershell/v1.0:/mnt/c/WINDOWS/system32/openssh:/mnt/c/Program Files/NVIDIA Corporation/NVIDIA App/NvDLISR:/mnt/c/Program Files/apache-maven-3.9.11/bin:/mnt/c/Program Files/Java/jdk-24/bin:/mnt/c/Program Files/nodejs:/mnt/c/ffmpeg/bin:/mnt/c/Program Files/Sunshine:/mnt/c/Program Files/Sunshine/tools:/mnt/c/Program Files/Void/bin:/mnt/c/Program Files (x86)/NVIDIA Corporation/PhysX/Common:/mnt/c/Program Files/WSL:/mnt/c/Users/Senchinthan/AppData/Local/Programs/Python/Python312/Scripts:/mnt/c/Users/Senchinthan/AppData/Local/Programs/Python/Python312:/mnt/c/Users/Senchinthan/AppData/Local/Programs/Python/Launcher:/mnt/c/java/jdk1.8.0_202/bin:/mnt/c/program files/nodejs:/mnt/c/Hadoop-2.8.0/bin:/mnt/c/Java/jdk1.8.0_202/bin:/mnt/c/Users/Senchinthan/AppData/Local/Microsoft/WindowsApps:/mnt/c/Users/Senchinthan/AppData/Local/spicetify:/mnt/c/Users/Senchinthan/AppData/Roaming/nvm:/mnt/c/Users/Senchinthan/AppData/Local/Microsoft/WindowsApps:/mnt/c/program files (x86)/steam/ext/bin:/mnt/c/Users/Senchinthan/.dotnet/tools:/mnt/c/Users/Senchinthan/AppData/Roaming/npm:/mnt/c/Users/Senchinthan/AppData/Local/Python/bin:/mnt/c/Users/Senchinthan/AppData/Local/Programs/Kiro/bin:/mnt/c/Users/Senchinthan/AppData/Local/Programs/Microsoft VS Code/bin:/mnt/c/Users/Senchinthan/AppData/Local/Programs/Antigravity IDE/bin:/Docker/host/bin:/snap/bin
+JAVA_HOME: /home/senchinthan/opt/jdk8u514-b01/
+
+Java version check:
+openjdk version "1.8.0_514"
+OpenJDK Runtime Environment (Temurin)(build 1.8.0_514-b01)
+OpenJDK 64-Bit Server VM (Temurin)(build 25.514-b01, mixed mode)
+
+Creating database at: /home/senchinthan/capstone/iris/data/codeql-dbs/perwendel__spark_CVE-2018-9159_2.7.1
+Using source path: /home/senchinthan/capstone/iris/data/project-sources/perwendel__spark_CVE-2018-9159_2.7.1
+Using JAVA_HOME: /home/senchinthan/opt/jdk8u514-b01/
+Successfully created CodeQL database for perwendel__spark_CVE-2018-9159_2.7.1
+
+real	0m54.534s
+user	1m54.793s
+sys	0m17.256s
+CODEQL_DB_EXIT=0
+total 284
+drwxr-xr-x 5 senchinthan senchinthan   4096 Nov 20 17:20 .
+drwxr-xr-x 3 senchinthan senchinthan   4096 Nov 20 17:19 ..
+-rw-r--r-- 1 senchinthan senchinthan   9887 Nov 20 17:19 baseline-info.json
+-rw-r--r-- 1 senchinthan senchinthan    406 Nov 20 17:20 codeql-database.yml
+drwxr-xr-x 3 senchinthan senchinthan   4096 Nov 20 17:20 db-java
+drwxr-xr-x 4 senchinthan senchinthan   4096 Nov 20 17:20 diagnostic
+drwxr-xr-x 3 senchinthan senchinthan   4096 Nov 20 17:20 log
+-rw-r--r-- 1 senchinthan senchinthan 251331 Nov 20 17:20 src.zip
+=== DONE 2026-11-20T17:20:07+00:00

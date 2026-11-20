@@ -1,0 +1,225 @@
+[
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "params",
+    "signature": "String params(String param)",
+    "tainted_input": [
+      "param"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "queryParams",
+    "signature": "String queryParams(String queryParam)",
+    "tainted_input": [
+      "queryParam"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "queryParamsValues",
+    "signature": "String[] queryParamsValues(String queryParam)",
+    "tainted_input": [
+      "queryParam"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Request",
+    "method": "queryParamOrDefault",
+    "signature": "String queryParamOrDefault(String queryParam, String defaultValue)",
+    "tainted_input": [
+      "queryParam"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "body",
+    "signature": "void body(String body)",
+    "tainted_input": [
+      "body"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "header",
+    "signature": "void header(String header, String value)",
+    "tainted_input": [
+      "header",
+      "value"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "cookie",
+    "signature": "void cookie(String name, String value)",
+    "tainted_input": [
+      "name",
+      "value"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Response",
+    "method": "redirect",
+    "signature": "void redirect(String location)",
+    "tainted_input": [
+      "location"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Redirect",
+    "method": "get",
+    "signature": "void get(String fromPath, String toPath)",
+    "tainted_input": [
+      "fromPath",
+      "toPath"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Redirect",
+    "method": "put",
+    "signature": "void put(String fromPath, String toPath)",
+    "tainted_input": [
+      "fromPath",
+      "toPath"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "get",
+    "signature": "void get(String path, Route route)",
+    "tainted_input": [
+      "path",
+      "route"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "put",
+    "signature": "void put(String path, Route route)",
+    "tainted_input": [
+      "path",
+      "route"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "delete",
+    "signature": "void delete(String path, Route route)",
+    "tainted_input": [
+      "path",
+      "route"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "get",
+    "signature": "void get(String path, Route route)",
+    "tainted_input": [
+      "path",
+      "route"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "post",
+    "signature": "void post(String path, Route route)",
+    "tainted_input": [
+      "path",
+      "route"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "patch",
+    "signature": "void patch(String path, Route route)",
+    "tainted_input": [
+      "path",
+      "route"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "exception",
+    "signature": "void exception(Class<T> exceptionClass, ExceptionHandler<? super T> handler)",
+    "tainted_input": [
+      "exceptionClass",
+      "handler"
+    ]
+  },
+  {
+    "package": "spark",
+    "class": "Spark",
+    "method": "halt",
+    "signature": "void halt(int status, String body)",
+    "tainted_input": [
+      "status",
+      "body"
+    ]
+  },
+  {
+    "package": "spark.embeddedserver.jetty",
+    "class": "SocketConnectorFactory",
+    "method": "createSecureSocketConnector",
+    "signature": "Server createSecureSocketConnector(Server server, String host, int port, SslStores sslStores)",
+    "tainted_input": [
+      "host",
+      "port",
+      "sslStores"
+    ]
+  },
+  {
+    "package": "spark.embeddedserver.jetty",
+    "class": "SocketConnectorFactory",
+    "method": "createSocketConnector",
+    "signature": "ServerConnector createSocketConnector(Server server, String host, int port)",
+    "tainted_input": [
+      "host",
+      "port"
+    ]
+  },
+  {
+    "package": "spark.embeddedserver.jetty.websocket",
+    "class": "WebSocketCreatorFactory",
+    "method": "create",
+    "signature": "WebSocketCreator create(WebSocketHandlerWrapper handlerWrapper)",
+    "tainted_input": [
+      "handlerWrapper"
+    ]
+  },
+  {
+    "package": "spark.embeddedserver.jetty.websocket",
+    "class": "WebSocketServletContextHandlerFactory",
+    "method": "create",
+    "signature": "ServletContextHandler create(Map<String,WebSocketHandlerWrapper> webSocketHandlers, Optional<Integer> webSocketIdleTimeoutMillis)",
+    "tainted_input": [
+      "webSocketHandlers",
+      "webSocketIdleTimeoutMillis"
+    ]
+  },
+  {
+    "package": "spark.route",
+    "class": "HttpMethod",
+    "method": "get",
+    "signature": "HttpMethod get(String methodStr)",
+    "tainted_input": [
+      "methodStr"
+    ]
+  }
+]

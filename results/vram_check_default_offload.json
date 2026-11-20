@@ -1,0 +1,39 @@
+{
+  "timestamp": "2026-11-20T16:57:01.845355+00:00",
+  "ollama_version": "0.40.16",
+  "runs": [
+    {
+      "model": "qwen2.5-coder:7b-instruct-q4_K_M",
+      "num_ctx": 8192,
+      "prompt_eval_count": 2856,
+      "eval_count": 69,
+      "prompt_tokens_per_s": 561.9926496241478,
+      "eval_tokens_per_s": 8.342565571054054,
+      "load_duration_s": 20.96934446,
+      "wall_s": 34.38,
+      "gpu_fraction": 0.8143,
+      "fully_on_gpu": false,
+      "ps_size_bytes": 5167036495,
+      "ps_size_vram_bytes": 4207641885,
+      "ps_context_length": 8192,
+      "nvidia_smi_used_mib": 4159
+    },
+    {
+      "model": "qwen2.5-coder:7b-instruct-q4_K_M",
+      "num_ctx": 6144,
+      "prompt_eval_count": 2856,
+      "eval_count": 69,
+      "prompt_tokens_per_s": 526.0801082221938,
+      "eval_tokens_per_s": 10.51531921994619,
+      "load_duration_s": 10.630015973,
+      "wall_s": 22.65,
+      "gpu_fraction": 0.8144,
+      "fully_on_gpu": false,
+      "ps_size_bytes": 5108725184,
+      "ps_size_vram_bytes": 4160340622,
+      "ps_context_length": 6144,
+      "nvidia_smi_used_mib": 4115
+    }
+  ],
+  "chosen_num_ctx": null
+}

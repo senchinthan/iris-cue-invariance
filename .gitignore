@@ -1,0 +1,11 @@
+# IRIS is a separate upstream clone; its SHA is pinned in docs/VERSIONS.md
+iris/
+# scratch / downloads
+runs/tmp/
+logs/
+__pycache__/
+*.pyc
+.pytest_cache/
+# large binary artefacts
+*.tar.gz
+*.zip

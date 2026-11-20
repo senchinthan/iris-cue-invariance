@@ -1,0 +1,200 @@
+[
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "warn",
+    "signature": "void warn(String p0, Object p1, Object p2)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "warn",
+    "signature": "void warn(String p0, Throwable p1)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "javax.servlet.http",
+    "class": "HttpServletResponse",
+    "method": "sendRedirect",
+    "signature": "void sendRedirect(String p0)",
+    "sink_args": [
+      "p0"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "error",
+    "signature": "void error(String p0, Throwable p1)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "warn",
+    "signature": "void warn(String p0)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "info",
+    "signature": "void info(String p0)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "javax.servlet.http",
+    "class": "HttpSession",
+    "method": "setAttribute",
+    "signature": "void setAttribute(String p0, Object p1)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "error",
+    "signature": "void error(String p0, Object p1)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "info",
+    "signature": "void info(String p0, Object p1)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "info",
+    "signature": "void info(String p0, Object p1, Object p2)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "info",
+    "signature": "void info(String p0, Object[] p1)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.slf4j",
+    "class": "Logger",
+    "method": "error",
+    "signature": "void error(String p0)",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "OutputStream",
+    "method": "write",
+    "signature": "void write(byte[] p0)",
+    "sink_args": [
+      "p0"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "PrintWriter",
+    "method": "write",
+    "signature": "void write(String p0)",
+    "sink_args": [
+      "p0"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "OutputStream",
+    "method": "write",
+    "signature": "void write(byte[] p0, int p1, int p2)",
+    "sink_args": [
+      "p0",
+      "p1",
+      "p2"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "Writer",
+    "method": "write",
+    "signature": "void write(char[] p0, int p1, int p2)",
+    "sink_args": [
+      "p0",
+      "p1",
+      "p2"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "FileWriter",
+    "method": "FileWriter",
+    "signature": "FileWriter(File p0)",
+    "sink_args": [
+      "p0"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "Writer",
+    "method": "write",
+    "signature": "void write(String p0)",
+    "sink_args": [
+      "p0"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "OutputStreamWriter",
+    "method": "close",
+    "signature": "void close()",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "org.eclipse.jetty.websocket.client",
+    "class": "WebSocketClient",
+    "method": "connect",
+    "signature": "Future<Session> connect(Object p0, URI p1, ClientUpgradeRequest p2)",
+    "sink_args": [
+      "p1"
+    ],
+    "type": "sink"
+  },
+  {
+    "package": "org.eclipse.jetty.util.resource",
+    "class": "Resource",
+    "method": "getFile",
+    "signature": "File getFile()",
+    "sink_args": [],
+    "type": "sink"
+  },
+  {
+    "package": "java.io",
+    "class": "FileInputStream",
+    "method": "FileInputStream",
+    "signature": "FileInputStream(String p0)",
+    "sink_args": [
+      "p0"
+    ],
+    "type": "sink"
+  }
+]

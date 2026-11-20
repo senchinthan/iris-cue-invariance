@@ -1,0 +1,540 @@
+[
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "substring",
+    "signature": "String substring(int p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "substring",
+    "signature": "String substring(int p0, int p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "toLowerCase",
+    "signature": "String toLowerCase()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "StringBuffer",
+    "method": "toString",
+    "signature": "String toString()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "StringBuilder",
+    "method": "StringBuilder",
+    "signature": "StringBuilder(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "StringBuilder",
+    "method": "append",
+    "signature": "StringBuilder append(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "StringBuilder",
+    "method": "toString",
+    "signature": "String toString()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.util",
+    "class": "Map",
+    "method": "put",
+    "signature": "EmbeddedServerFactory put(Object p0, EmbeddedServerFactory p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.server",
+    "class": "Server",
+    "method": "Server",
+    "signature": "Server(ThreadPool p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.server",
+    "class": "Server",
+    "method": "Server",
+    "signature": "Server()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.server",
+    "class": "AbstractConnector",
+    "method": "setIdleTimeout",
+    "signature": "void setIdleTimeout(long p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.server",
+    "class": "AbstractNetworkConnector",
+    "method": "setHost",
+    "signature": "void setHost(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.server",
+    "class": "AbstractNetworkConnector",
+    "method": "setPort",
+    "signature": "void setPort(int p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.websocket.servlet",
+    "class": "WebSocketServletFactory",
+    "method": "getPolicy",
+    "signature": "WebSocketPolicy getPolicy()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.websocket.server",
+    "class": "NativeWebSocketConfiguration",
+    "method": "addMapping",
+    "signature": "void addMapping(PathSpec p0, WebSocketCreator p1)",
+    "sink_args": [
+      "p0"
+    ],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "format",
+    "signature": "String format(String p0, Object[] p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URL",
+    "method": "openConnection",
+    "signature": "URLConnection openConnection()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLConnection",
+    "method": "getContentLength",
+    "signature": "int getContentLength()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLConnection",
+    "method": "getLastModified",
+    "signature": "long getLastModified()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "indexOf",
+    "signature": "int indexOf(int p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "Class",
+    "method": "getResource",
+    "signature": "URL getResource(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "Class",
+    "method": "getResourceAsStream",
+    "signature": "InputStream getResourceAsStream(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "lastIndexOf",
+    "signature": "int lastIndexOf(int p0, int p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "trim",
+    "signature": "String trim()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "split",
+    "signature": "String[] split(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "replace",
+    "signature": "String replace(CharSequence p0, CharSequence p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.nio.file",
+    "class": "Path",
+    "method": "toAbsolutePath",
+    "signature": "Path toAbsolutePath()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.nio.file",
+    "class": "Paths",
+    "method": "get",
+    "signature": "Path get(String p0, String[] p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "replaceAll",
+    "signature": "String replaceAll(String p0, String p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.util",
+    "class": "Map",
+    "method": "put",
+    "signature": "Class<?> put(Class<?> p0, Class<?> p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.util",
+    "class": "Map",
+    "method": "put",
+    "signature": "Class<?> put(String p0, Class<?> p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "lastIndexOf",
+    "signature": "int lastIndexOf(int p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "replace",
+    "signature": "String replace(char p0, char p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "StringBuffer",
+    "method": "StringBuffer",
+    "signature": "StringBuffer(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "StringBuffer",
+    "method": "append",
+    "signature": "StringBuffer append(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URL",
+    "method": "URL",
+    "signature": "URL(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "indexOf",
+    "signature": "int indexOf(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URI",
+    "method": "URI",
+    "signature": "URI(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLConnection",
+    "method": "setUseCaches",
+    "signature": "void setUseCaches(boolean p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "lastIndexOf",
+    "signature": "int lastIndexOf(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLConnection",
+    "method": "getInputStream",
+    "signature": "InputStream getInputStream()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLConnection",
+    "method": "connect",
+    "signature": "void connect()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLConnection",
+    "method": "getHeaderFields",
+    "signature": "Map<String,List<String>> getHeaderFields()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpPost",
+    "method": "HttpPost",
+    "signature": "HttpPost(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.io",
+    "class": "File",
+    "method": "File",
+    "signature": "File(String p0, String p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URI",
+    "method": "create",
+    "signature": "URI create(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLClassLoader",
+    "method": "getURLs",
+    "signature": "URL[] getURLs()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLClassLoader",
+    "method": "URLClassLoader",
+    "signature": "URLClassLoader(URL[] p0, ClassLoader p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.util",
+    "class": "HashMap",
+    "method": "put",
+    "signature": "Object put(Object p0, Object p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.websocket.server",
+    "class": "WebSocketServerFactory",
+    "method": "getPolicy",
+    "signature": "WebSocketPolicy getPolicy()",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.util",
+    "class": "Map",
+    "method": "put",
+    "signature": "Book put(String p0, Book p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.lang",
+    "class": "String",
+    "method": "valueOf",
+    "signature": "String valueOf(int p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "java.net",
+    "class": "URLConnection",
+    "method": "addRequestProperty",
+    "signature": "void addRequestProperty(String p0, String p1)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.server.handler",
+    "class": "ContextHandler",
+    "method": "setContextPath",
+    "signature": "void setContextPath(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.eclipse.jetty.webapp",
+    "class": "WebAppContext",
+    "method": "setWar",
+    "signature": "void setWar(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.impl.conn",
+    "class": "BasicHttpClientConnectionManager",
+    "method": "BasicHttpClientConnectionManager",
+    "signature": "BasicHttpClientConnectionManager(Lookup<ConnectionSocketFactory> p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.impl.client",
+    "class": "HttpClientBuilder",
+    "method": "setConnectionManager",
+    "signature": "HttpClientBuilder setConnectionManager(HttpClientConnectionManager p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.impl.client",
+    "class": "HttpClientBuilder",
+    "method": "setRedirectStrategy",
+    "signature": "HttpClientBuilder setRedirectStrategy(RedirectStrategy p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpGet",
+    "method": "HttpGet",
+    "signature": "HttpGet(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.entity",
+    "class": "StringEntity",
+    "method": "StringEntity",
+    "signature": "StringEntity(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpPatch",
+    "method": "HttpPatch",
+    "signature": "HttpPatch(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpDelete",
+    "method": "HttpDelete",
+    "signature": "HttpDelete(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpPut",
+    "method": "HttpPut",
+    "signature": "HttpPut(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpHead",
+    "method": "HttpHead",
+    "signature": "HttpHead(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpTrace",
+    "method": "HttpTrace",
+    "signature": "HttpTrace(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpOptions",
+    "method": "HttpOptions",
+    "signature": "HttpOptions(String p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  },
+  {
+    "package": "org.apache.http.client.methods",
+    "class": "HttpRequestBase",
+    "method": "setURI",
+    "signature": "void setURI(URI p0)",
+    "sink_args": [],
+    "type": "taint-propagator"
+  }
+]

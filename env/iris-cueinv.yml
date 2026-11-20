@@ -1,0 +1,28 @@
+# Derived from iris/environment.yml (IRIS v2 @ d2059f2). Differences are marked "# CUEINV".
+name: iris
+channels:
+  - pytorch
+  - nvidia
+  - conda-forge          # CUEINV: Anaconda `defaults` removed from ~/.condarc and ~/miniconda3/.condarc (no ToS acceptance)
+dependencies:
+  - python=3.10
+  - pandas
+  - requests
+  - tqdm
+  - openai
+  - accelerate
+  - transformers
+  - pytorch=2.5
+  - cpuonly               # CUEINV: torch is only imported (src/models/llm.py:1-3); inference runs in Ollama on the GPU
+  - google-generativeai
+  - pyyaml                # CUEINV: used by src/evaluate_spec_against_codeql.py but not listed upstream
+  # CUEINV: our harness / analysis / tests
+  - pytest
+  - numpy
+  - scipy
+  - statsmodels
+  - matplotlib
+  - pip
+  - pip:
+    - docker
+    - ollama              # CUEINV: required by src/models/ollama.py, "install manually" per docs/features/models.md

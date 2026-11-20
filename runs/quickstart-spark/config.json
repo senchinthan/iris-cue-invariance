@@ -1,0 +1,30 @@
+{
+  "run_id": "quickstart-spark",
+  "timestamp": "2026-11-20T17:20:27.821224+00:00",
+  "iris_git_sha": "d2059f299a80a68ea4a0b0315eec2f42b8743776-dirty",
+  "cueinv_git_sha": null,
+  "ollama_version": "0.40.16",
+  "model": "qwen2.5-coder:7b-instruct-q4_K_M",
+  "model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+  "condition": "IRIS_QUICKSTART",
+  "rep": 1,
+  "seed": 1234,
+  "iris_argv": [
+    "perwendel__spark_CVE-2018-9159_2.7.1",
+    "--query",
+    "cwe-022wLLM",
+    "--skip-posthoc-filter",
+    "--run-id",
+    "quickstart-spark",
+    "--llm",
+    "ollama-qwen2.5-coder-7b-q4km"
+  ],
+  "note": "IRIS CLI unmodified; in-memory overrides: model alias + temperature; num_ctx unset (server default 4096), num_gpu unset (Ollama default fit)",
+  "ollama_options_effective": {
+    "temperature": 0.0,
+    "num_predict": -1,
+    "stop": null,
+    "seed": 1234
+  },
+  "correction": "2026-11-20: original record logged seed=0 (captured before IRIS's OllamaModel.__init__ overwrote it with --seed=1234); corrected here. cueinv/iris_quickstart.py fixed."
+}

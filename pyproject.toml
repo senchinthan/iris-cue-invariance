@@ -1,0 +1,9 @@
+[project]
+name = "cueinv"
+version = "0.1.0"
+description = "Cue-invariance of LLM-inferred taint specs in IRIS (capstone)"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+testpaths = ["cueinv/tests"]
+pythonpath = ["."]
