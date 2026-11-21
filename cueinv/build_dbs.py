@@ -5,7 +5,11 @@ Per project: pull the IRIS v2 image -> (re)tag it to the canonical slug if the D
 generate data/package-names/<slug>.txt if missing (IRIS's own get_packages_codeql functions) -> `docker rmi` the image.
 DBs are kept in iris/data/codeql-dbs/<slug>-docker. Resumable: existing DBs are skipped. Results: results/db_builds.csv.
 
-Usage:  python -m cueinv.build_dbs --projects results/pilot.csv
+Usage:  python -m cueinv.build_dbs --projects results/pilot.csv [--max-hours 5.75]
+
+--max-hours is a wall-clock budget for the whole job (the user asked for permission before anything that needs more than
+6 h of machine time): no new project starts when less than MIN_START_MIN minutes remain, and every pull/build timeout
+is clipped to the time left. Skipped projects are listed at the end and picked up by the next (resumable) run.
 """
 
 from __future__ import annotations
@@ -29,6 +33,7 @@ GENERATED_PKG_COPY = CAPSTONE_ROOT / "data" / "package-names-generated"
 LOG_DIR = CAPSTONE_ROOT / "logs" / "dbs"
 MAX_IMAGE_GB = 5.0  # global rule 4: ask before any single download over 5 GB
 BUILD_ATTEMPTS = 3
+MIN_START_MIN = 20  # do not start a new project with less than this much budget left
 FIELDS = ["slug", "docker_tag", "image_gb", "status", "pull_s", "build_s", "db_mb", "package_names", "n_packages",
           "timestamp", "note"]
 
@@ -87,7 +92,22 @@ def generate_package_names(slug: str, workdir: Path) -> tuple[str, int]:
     return f"generated(groupId={group})", len(internal)
 
 
-def build_one(row: dict, timeout_min: int, keep_image: bool) -> dict:
+def _left(deadline: float | None) -> float:
+    return float("inf") if deadline is None else deadline - time.time()
+
+
+def _clip(seconds: float, deadline: float | None) -> int:
+    return max(1, int(min(seconds, _left(deadline))))
+
+
+def _kill_containers(image: str, log: Path) -> None:
+    """A timed-out IRIS build is SIGKILLed before its `finally: container.remove()` runs, so remove its container."""
+    ids = subprocess.run(["docker", "ps", "-aq", "--filter", f"ancestor={image}"], capture_output=True, text=True).stdout.split()
+    if ids:
+        _run(["docker", "rm", "-f", *ids], log)
+
+
+def build_one(row: dict, timeout_min: int, keep_image: bool, deadline: float | None = None) -> dict:
     slug, tag = row["slug"], row["docker_tag"] or row["slug"]
     image_gb = float(row["image_gb"]) if row.get("image_gb") else None
     rec = {"slug": slug, "docker_tag": tag, "image_gb": image_gb, "timestamp": datetime.now(timezone.utc).isoformat()}
@@ -103,7 +123,7 @@ def build_one(row: dict, timeout_min: int, keep_image: bool) -> dict:
             return rec
         hub, canon = f"{HUB_REPO}:{tag}", f"{HUB_REPO}:{slug}"
         t0 = time.time()
-        if _run(["docker", "pull", "-q", hub], log, timeout=3600) != 0:
+        if _run(["docker", "pull", "-q", hub], log, timeout=_clip(3600, deadline)) != 0:
             rec.update(status="pull_failed", pull_s=round(time.time() - t0))
             return rec
         rec["pull_s"] = round(time.time() - t0)
@@ -113,10 +133,12 @@ def build_one(row: dict, timeout_min: int, keep_image: bool) -> dict:
         # build_codeql_dbs.py:325-343), so retry the build; the image stays local between attempts.
         code, attempts = 1, 0
         t0 = time.time()
-        while attempts < BUILD_ATTEMPTS and not db_exists(slug):
+        while attempts < BUILD_ATTEMPTS and not db_exists(slug) and _left(deadline) > 60:
             attempts += 1
             code = _run([sys.executable, "scripts/build_codeql_dbs.py", "--project", slug, "--use-container"], log,
-                        cwd=IRIS_ROOT, timeout=timeout_min * 60, env=env)
+                        cwd=IRIS_ROOT, timeout=_clip(timeout_min * 60, deadline), env=env)
+            if code == 124:
+                _kill_containers(canon, log)
             if code == 0 and db_exists(slug):
                 break
             time.sleep(10)
@@ -146,7 +168,9 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--out", default=str(RESULTS_DIR / "db_builds.csv"))
     ap.add_argument("--timeout-min", type=int, default=90)
     ap.add_argument("--keep-image", action="store_true")
+    ap.add_argument("--max-hours", type=float, default=None, help="wall-clock budget for the whole job")
     args = ap.parse_args(argv)
+    deadline = None if args.max_hours is None else time.time() + args.max_hours * 3600
 
     rows = list(csv.DictReader(open(args.projects)))
     out = Path(args.out)
@@ -155,12 +179,19 @@ def main(argv: list[str] | None = None) -> int:
         w = csv.DictWriter(f, fieldnames=FIELDS, extrasaction="ignore")
         if new:
             w.writeheader()
+        deferred = []
         for row in rows:
+            if not db_exists(row["slug"]) and _left(deadline) < MIN_START_MIN * 60:
+                deferred.append(row["slug"])
+                continue
             print(f"[{datetime.now().strftime('%H:%M:%S')}] {row['slug']} ...", flush=True)
-            rec = build_one(row, args.timeout_min, args.keep_image)
+            rec = build_one(row, args.timeout_min, args.keep_image, deadline)
             w.writerow(rec)
             f.flush()
             print(f"    {rec}", flush=True)
+    if deferred:
+        print(f"BUDGET REACHED ({args.max_hours} h): {len(deferred)} project(s) not started: {' '.join(deferred)}", flush=True)
+    print("DONE", flush=True)
     return 0
 
 
