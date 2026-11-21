@@ -122,7 +122,8 @@ Campaign `main`, one project at a time, resumable (`cueinv/run.py`), tmux, logs 
 2. second model: BASE r1, r2, SHUF, R_NEU, D_STRIP, M_README;
 3. detection: BASE, SHUF, COMBO, H1C, ABLATION;
 4. Kaggle anchor from `kaggle/prompts.jsonl`.
-Projected ≈ 63 machine-hours (pilot timing). Missing DBs for 41 projects are built first (≈ 22 GB of images, one at a time).
+Projected ≈ 59 machine-hours (free-form pilot timing, `results/pilot_report.md`). Missing DBs for 41 projects are built first
+(≈ 22 GB of images, one at a time).
 
 ## 8. Analysis code path
 
@@ -134,8 +135,10 @@ same tables; any change to the frozen confirmatory functions after prereg-v1 wil
 
 * Schema-constrained pilot: 38 of 44 internal batches answered `[]`; 49 baseline labels; power ≈ 0 → GATE 2 no-go.
 * Same prompts free-form (`results/diag_schema.json`): 0 of 44 empty, 397 labels → output constraint dropped (D1(a)).
-* Free-form pilot (BASE ×2, SHUF): 408 baseline labels (≈ 3,700 projected), 0 parse failures in 132 internal calls, 7 % of
-  returned items outside their batch; repeat retention 0.72–1.00, SHUF retention 0.25–0.63.
+* Free-form pilot (external, BASE ×2, SHUF, BASE detection): 408 baseline labels (≈ 3,700 projected), 2 parse failures in
+  423 calls (0 of 132 internal), 7 % of returned internal items outside their batch; repeat retention 0.72–1.00, SHUF
+  retention 0.25–0.63; mean 15.2 s per internal and 15.9 s per external call; BASE detection 2 of 5 CVEs (plexus-archiver,
+  solon); `results/pilot_report.md` (= `pilot_report_pilot-ff.md`).
 * Perturbation layer: 155 tests (round trip 100 %, external prompts byte-identical, no surviving identifiers, SHUF only
   reorders) and an echo dry run (all 13 label conditions × 5 projects map back exactly). No cue condition was run on real
   model outputs before this pre-registration.

@@ -57,9 +57,9 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] 6.5 Phase 6 commit
 
 ## Phase 7 — Pre-registration
-- [ ] 7.1 `docs/PREREG.md`
-- [ ] 7.2 Commit + `git tag prereg-v1`
-- [ ] **GATE 3** — user approves and confirms it is public (GitHub / OSF)
+- [x] 7.1 `docs/PREREG.md` (hypotheses, endpoints, conditions, decision rule, exclusions E1–E4, pilot, analysis code path, deviations, threats) + frozen confirmatory code `cueinv/analysis.py` (8 tests)
+- [x] 7.2 Commit + `git tag prereg-v1`
+- [!] **GATE 3** — waiting for user: approve PREREG.md and make it public (GitHub / OSF) with a timestamp
 
 ## Phase 8 — Main runs
 - [ ] 8.1 `cueinv/run.py` (resumable, one project at a time, tmux)
@@ -95,3 +95,4 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - 2026-11-21 — Free-form re-pilot internal controls done (`results/pilot_report_pilot-ff.md`); external + detection still running in tmux `pilotff`. Stopped at GATE 2 for D2/D3.
 - 2026-11-21 — GATE 2 passed (D2 recommended options). Starting Phase 6 (perturbation layer).
 - 2026-11-21 — Phase 6 done (perturbation layer, 197 tests). No cue condition was run on real LLM outputs before PREREG (dry run only).
+- 2026-11-21 — Phase 7 done: PREREG.md + frozen analysis, tagged prereg-v1. Stopped at GATE 3 (approval + public posting by the user).
