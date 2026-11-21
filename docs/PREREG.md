@@ -162,3 +162,7 @@ fix commit can carry vulnerability cues (GATE 1 Q2; covariate `readme_mentions_v
 `vulnerab|CVE|security|exploit|upgrade` in IRIS's README head, reported per project and as a moderator of the M_README
 effect); T7 rename prose replacement
 also alters JavaDoc content; T8 network: README fetched live once per project and cached.
+
+## 12. Approval
+
+Approved by the study author on 2026-11-21 (GATE 3), unchanged from tag `prereg-v1`. Made public as described in `PROGRESS.md`.

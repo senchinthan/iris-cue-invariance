@@ -59,7 +59,7 @@ Each GATE is a hard stop: work resumes only after the user approves.
 ## Phase 7 — Pre-registration
 - [x] 7.1 `docs/PREREG.md` (hypotheses, endpoints, conditions, decision rule, exclusions E1–E4, pilot, analysis code path, deviations, threats) + frozen confirmatory code `cueinv/analysis.py` (8 tests)
 - [x] 7.2 Commit + `git tag prereg-v1`
-- [!] **GATE 3** — waiting for user: approve PREREG.md and make it public (GitHub / OSF) with a timestamp
+- [~] **GATE 3** — PREREG.md approved by the user (2026-11-21); publishing to a new public GitHub repo (history rewritten to a noreply email, memory.md excluded)
 
 ## Phase 8 — Main runs
 - [ ] 8.1 `cueinv/run.py` (resumable, one project at a time, tmux)
@@ -96,3 +96,4 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - 2026-11-21 — GATE 2 passed (D2 recommended options). Starting Phase 6 (perturbation layer).
 - 2026-11-21 — Phase 6 done (perturbation layer, 197 tests). No cue condition was run on real LLM outputs before PREREG (dry run only).
 - 2026-11-21 — Phase 7 done: PREREG.md + frozen analysis, tagged prereg-v1. Stopped at GATE 3 (approval + public posting by the user).
+- 2026-11-21 — User approved PREREG.md. Installed gh 2.105.0 + git-filter-repo (conda env `tools`). Waiting for GitHub sign-in to rewrite emails and push.
