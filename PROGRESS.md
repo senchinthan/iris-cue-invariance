@@ -27,20 +27,20 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] **GATE 1** — passed. Q1: keep the 4 annotated CVEs (patch cve_id parsing). Q2: keep fix-commit README + `readme_mentions_vuln` covariate. Q3: interception design approved (2026-11-21).
 
 ## Phase 3 — Subset selection
-- [ ] 3.1 `cueinv/select_subset.py`: CWE-22/78 + build success
-- [ ] 3.2 SLOC via cloc + build durations
-- [ ] 3.3 Filter (≤150K SLOC, ≤15 min, no giants)
-- [ ] 3.4 `results/subset.csv`
-- [ ] 3.5 `results/pilot.csv` (5 projects, both CWEs, varied size)
-- [ ] 3.6 CodeQL DBs for pilot (pull image → build DB → `docker rmi`)
+- [x] 3.1 `cueinv/select_subset.py` + `cueinv/dataset.py`: CWE-22/78 (both spellings, pool 73) + build success; slugs canonicalised
+- [x] 3.2 SLOC via cloc 2.10 (user-space, blob-SHA verified) on sources fetched at the buggy commit (`cueinv/sources.py`); IRIS Docker build durations
+- [x] 3.3 Filters: build ok → giants (plan list + Payara) → buggy commit → ≤15 min → fetch → ≤150K Java SLOC → Docker image exists
+- [x] 3.4 `results/subset.csv`: **46 projects** (34 CWE-22, 12 CWE-78; 2 annotated); all 73 with reasons in `results/subset_all.csv`
+- [x] 3.5 `results/pilot.csv`: 5 projects, SLOC quintiles 4K–125K, 3×CWE-22 + 2×CWE-78, incl. annotated solon (seeded rule)
+- [~] 3.6 CodeQL DBs for pilot via `cueinv/build_dbs.py` (pull → retag if needed → IRIS container build → package-names → `docker rmi`); Q1 data patch `patches/0002`
 - [ ] 3.7 Tests pass; Phase 3 commit
 
 ## Phase 4 — Deterministic LLM client + baseline labelling
-- [ ] 4.1 `cueinv/llm.py` (temp 0, top_k 1, top_p 1, seed, num_ctx, num_predict 2048, JSON-schema format, warm-up, qwen3 no-think, retry-once, token logging, jsonl cache, resumable)
-- [ ] 4.2 `cueinv/label.py` `label_external` (IRIS prompt verbatim, cached, byte-identity assert)
-- [ ] 4.3 `cueinv/label.py` `label_internal` (via perturbation layer, map back, IRIS format)
-- [ ] 4.4 Run logging (`runs/<run_id>/config.json`, `llm_calls.jsonl`)
-- [ ] 4.5 Tests pass; Phase 4 commit
+- [x] 4.1 `cueinv/llm.py` (temp 0, top_k 1, top_p 1, seed, num_ctx 8192, num_predict 2048, num_gpu 99, JSON-schema format, warm-up, qwen3 `think:false`, retry-once, token + GPU logging, jsonl cache, resumable, refuses mixed settings)
+- [x] 4.2 `cueinv/label.py` `label_external` via IRIS stage 3 + injected `IrisModelAdapter`; external prompt SHA-256s recorded per project
+- [x] 4.3 `label_internal` via `cueinv/perturb.py` (BASE, SHUF so far), batch validation + map-back, IRIS-format label files; `cueinv/iris_bridge.py`, `cueinv/run.py` (+ detection resume path)
+- [x] 4.4 Run logging: `runs/<campaign>__<model>__<cond>__r<rep>/{config.json, llm_calls.jsonl, rename_map/, labels/}`
+- [x] 4.5 Tests pass (35); smoke run on plexus-archiver OK (17 ext + 4 int calls, 0 parse failures, 100 % GPU)
 
 ## Phase 5 — Pilot
 - [ ] 5.1 Pilot runs: BASE rep1, BASE rep2, SHUF on 5 projects

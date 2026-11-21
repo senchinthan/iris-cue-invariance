@@ -311,3 +311,14 @@ Windows (`0x24` = SW power cap + SW thermal), so please put the laptop on AC pow
 * **Q2 → (a): keep IRIS's fix-commit README for BASE** and pre-register the per-project covariate `readme_mentions_vuln`
   (keyword scan `vulnerab|CVE|security|exploit|upgrade` on `readme_head.txt`), reported alongside `M_README`.
 * **Q3 → approved** (user, 2026-11-21): the §8 interception design is the implementation path.
+
+### Phase 3 follow-ups (2026-11-21)
+* There are actually **three** spellings for the 2025 slugs: `fix_info.csv` uses `owner__repo_CVE_tag`
+  (e.g. `apache__jena_CVE-2025-49656_jena-5.4.0`), which IRIS parses correctly and which its scoring needs
+  (`iris.py:159` matches `fix_info.csv` by slug). Q1 was therefore implemented as a **data** patch
+  (`patches/0002-normalise-2025-slugs.patch`, `docs/PATCHES.md`) plus a local `docker tag` — no IRIS code hook was needed.
+* Of the 4 annotated CWE-22/78 CVEs only **2 survive the subset filters** (conductor 114K, solon 125K Java SLOC);
+  jena (674K) and DSpace 7.6.3 (372K) exceed 150K. Ground-truth recall therefore has n = 2 unless the SLOC cap is relaxed.
+* `testng-team__testng_CVE-2022-4065_7.5` has **no image** in `irissast/cwe-bench-java-containers-v2` (HTTP 404) → excluded.
+* Container DNS is intermittent on the current (mobile-hotspot) network; IRIS re-clones sources inside the container
+  (`build_codeql_dbs.py:325-343`), so `cueinv/build_dbs.py` retries the build up to 3 times.

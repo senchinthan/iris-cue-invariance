@@ -1,0 +1,86 @@
+diff --git a/data/build_info.csv b/data/build_info.csv
+index 71339f6..7b321f7 100644
+--- a/data/build_info.csv
++++ b/data/build_info.csv
+@@ -129,9 +129,9 @@ mapfish__mapfish-print_CVE-2020-15231_3.22.0,success,8,,,True
+ keycloak_CVE-2025-7784_26.2.5,success,17,3.8.7,,False
+ keycloak_CVE-2025-7365_26.0.12,success,17,3.8.7,,False
+ opencast_CVE-2025-54380_17.5,success,17,3.9.4,,False
+-jena_CVE-2025-49656_jena-5.4.0,success,17,3.9.2,,False
++apache__jena_CVE-2025-49656_jena-5.4.0,success,17,3.9.2,,False
+ reactor-netty_CVE-2025-22227_v1.2.8,success,8,3.6.3,,False
+-DSpace_CVE-2025-53622_dspace-7.6.3,success,17,3.8.7,,False
++DSpace__DSpace_CVE-2025-53622_dspace-7.6.3,success,17,3.8.7,,False
+ DSpace_CVE-2025-53621_dspace-7.6.3,success,17,3.8.1,,False
+ cxf_CVE-2025-48795_cxf-3.5.10,success,17,3.6.3,,False
+ jackrabbit_CVE-2025-53689_jackrabbit-2.23.1-beta,success,11,3.6.3,,False
+@@ -139,7 +139,7 @@ tomcat_CVE-2025-53506_11.0.8,failure (Ant),11,,,False
+ tomcat_CVE-2025-52520_11.0.8,failure (Ant),11,,,False
+ junit-framework_CVE-2025-53103_r5.13.1,success,24,,9.0.0,True
+ graylog2-server_CVE-2025-53106_6.2.3,success,17,3.9.10,,False
+-conductor_CVE-2025-26074_v3.21.12,success,17,,8.5,True
++conductor-oss__conductor_CVE-2025-26074_v3.21.12,success,17,,8.5,True
+ jans_CVE-2025-53003_v1.7.0,failure (Cannot build entire repo; contains several seperate projects),11,3.8.7,,False
+ incubator-seata_CVE-2025-32897_v2.2.0,success,8,3.9.11,,False
+ allure2_CVE-2025-52888_2.34.0,success,21,,8.5,True
+@@ -152,7 +152,7 @@ powsybl-core_CVE-2025-47293_v6.7.1,success,17,3.8.1,,False
+ tomcat_CVE-2025-49125_11.0.7,failure (Ant),11,,,False
+ tomcat_CVE-2025-48988_11.0.7,failure (Ant),11,,,False
+ commons-fileupload_CVE-2025-48976_commons-fileupload-1.5-RC1,success,11,3.6.3,,False
+-solon_CVE-2025-46096_v3.1.2,success,17,3.9.10,,False
++opensolon__solon_CVE-2025-46096_v3.1.2,success,17,3.9.10,,False
+ spring-framework_CVE-2025-41234_v6.2.7,success (Kotlin),24,,8.14.3,True
+ geoserver_CVE-2025-30145_2.26.2,success,17,3.8.7,,False
+ geoserver_CVE-2025-27505_2.26.2,success,17,3.8.7,,False
+@@ -206,7 +206,7 @@ felix-dev_CVE-2025-25247_org.osgi.compendium-1.4.0,failure (pom.xml not in root)
+ cassandra_CVE-2025-23015_cassandra-5.0-alpha2,failure (No pom),8,3.8.7,,False
+ s3proxy_CVE-2025-24961_s3proxy-2.5.0,success,11,3.6.3,,False
+ wildfly-core_CVE-2025-23367_27.0.0.Beta7,success,17,3.6.3,,False
+-djl_CVE-2025-0851_v0.30.0,success,17,,8.13,True
++deepjavalibrary__djl_CVE-2025-0851_v0.30.0,success,17,,8.13,True
+ snowflake-jdbc_CVE-2025-24790_v3.21.1,success,8,3.9.11,,False
+ snowflake-jdbc_CVE-2025-24789_v3.21.1,success,8,3.9.11,,False
+ oic-auth-plugin_CVE-2025-24399_4.452.v2849b_d3945fa_,success,17,3.9.11,,False
+diff --git a/data/project_info.csv b/data/project_info.csv
+index 5e820fc..6581d9c 100644
+--- a/data/project_info.csv
++++ b/data/project_info.csv
+@@ -129,9 +129,9 @@ id,project_slug,cve_id,cwe_id,cwe_name,github_username,github_repository_name,gi
+ 128,keycloak__CVE-2025-7784_26.2.5,CVE-2025-7784,CWE-269,CWE-269: Improper Privilege Management,keycloak,keycloak,26.2.5,https://github.com/keycloak/keycloak,GHSA-27gp-8389-hm4w,,
+ 129,keycloak__CVE-2025-7365_26.0.12,CVE-2025-7365,CWE-346,CWE-346: Origin Validation Error,keycloak,keycloak,26.0.12,https://github.com/keycloak/keycloak,GHSA-xhpr-465j-7p9q,1183157d862f9ccc66e1d6b36018e1aea6d49046,86f0a7864f2bdd991d5e24e6844ddabfce0aa6de
+ 130,opencast__CVE-2025-54380_17.5,CVE-2025-54380,CWE-200,CWE-200: Exposure of Sensitive Information to an Unauthorized Actor,opencast,opencast,17.5,https://github.com/opencast/opencast,GHSA-j63h-hmgw-x4j7,9bda49b6021f665c78a950c589b1a31198e2df49,2d3219113e2b9fadfb06443f5468b1c2157827a6
+-131,jena__CVE-2025-49656_jena-5.4.0,CVE-2025-49656,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),apache,jena,jena-5.4.0,https://github.com/apache/jena,GHSA-jq2c-m8gg-mqcm,35350569b4c1fd432d92e7c92af9597c4400debe,03c5265910aa3a27907bf54f6b4aaae3409afa4f
++131,apache__jena_CVE-2025-49656_jena-5.4.0,CVE-2025-49656,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),apache,jena,jena-5.4.0,https://github.com/apache/jena,GHSA-jq2c-m8gg-mqcm,35350569b4c1fd432d92e7c92af9597c4400debe,03c5265910aa3a27907bf54f6b4aaae3409afa4f
+ 132,reactor-netty__CVE-2025-22227_v1.2.8,CVE-2025-22227,CWE-200,CWE-200: Exposure of Sensitive Information to an Unauthorized Actor,reactor,reactor-netty,v1.2.8,https://github.com/reactor/reactor-netty,GHSA-4q2v-9p7v-3v22,a60f640c99d13af4e685c368a810c47b7f9fc628,522892307ea89bf24fe634e8bfea35728c9bf411
+-133,DSpace__CVE-2025-53622_dspace-7.6.3,CVE-2025-53622,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),DSpace,DSpace,dspace-7.6.3,https://github.com/DSpace/DSpace,GHSA-vhvx-8xgc-99wf,4da8ed69f44786dc33a3dd9a62ee719a51a4830e,3163ff8b1ea0abe09683a1a94fb5f5bb039983b3
++133,DSpace__DSpace_CVE-2025-53622_dspace-7.6.3,CVE-2025-53622,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),DSpace,DSpace,dspace-7.6.3,https://github.com/DSpace/DSpace,GHSA-vhvx-8xgc-99wf,4da8ed69f44786dc33a3dd9a62ee719a51a4830e,3163ff8b1ea0abe09683a1a94fb5f5bb039983b3
+ 134,DSpace__CVE-2025-53621_dspace-7.6.3,CVE-2025-53621,CWE-611,CWE-611: Improper Restriction of XML External Entity Reference,DSpace,DSpace,dspace-7.6.3,https://github.com/DSpace/DSpace,GHSA-jjwr-5cfh-7xwh,24357bdd9cf3bd05e4336d0c2d8a0cc7a2932417,28b5f3810fa2b819516e706849a99a9bf5f3de87
+ 135,cxf__CVE-2025-48795_cxf-3.5.10,CVE-2025-48795,CWE-400,CWE-400: Uncontrolled Resource Consumption,apache,cxf,cxf-3.5.10,https://github.com/apache/cxf,GHSA-36wv-v2qp-v4g4,51ad92012fbcfbdd77b722214631303850315799,1c1d687f8e295f433a3592a3bc0b0a63c432bfde
+ 136,jackrabbit__CVE-2025-53689_jackrabbit-2.23.1-beta,CVE-2025-53689,CWE-611,CWE-611: Improper Restriction of XML External Entity Reference,apache,jackrabbit,jackrabbit-2.23.1-beta,https://github.com/apache/jackrabbit,GHSA-44c3-38h8-9fh9,8b60b53546ebca4aa5160c9b764412fd381d5635,02786c0a01838580252bdab79bfa54026c30294e
+@@ -139,7 +139,7 @@ id,project_slug,cve_id,cwe_id,cwe_name,github_username,github_repository_name,gi
+ 138,tomcat__CVE-2025-52520_11.0.8,CVE-2025-52520,CWE-190,CWE-190: Integer Overflow or Wraparound,apache,tomcat,11.0.8,https://github.com/apache/tomcat,GHSA-wr62-c79q-cv37,434772930f362145516dd60681134e7f0cf8115b,927d66fbc294cb65242102b817a45fd80834e040
+ 139,junit-framework__CVE-2025-53103_r5.13.1,CVE-2025-53103,CWE-312,CWE-312: Cleartext Storage of Sensitive Information,junit-team,junit-framework,r5.13.1,https://github.com/junit-team/junit-framework,GHSA-m43g-m425-p68x,deb3e7c6487c370fc69703d19fbe559a9e4a97f7,d4fc834c8c1c0b3168cd030c13551d1d041f51bc
+ 140,graylog2-server__CVE-2025-53106_6.2.3,CVE-2025-53106,CWE-285,CWE-285: Improper Authorization,Graylog2,graylog2-server,6.2.3,https://github.com/Graylog2/graylog2-server,GHSA-3m86-c9x3-vwm9,9c64a804c08200eee8ce2fdfd72bf541d4e1058c,6936bd16a783c2944a3d2f1e83902062520f90e3
+-141,conductor__CVE-2025-26074_v3.21.12,CVE-2025-26074,CWE-78,CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection'),conductor-oss,conductor,v3.21.12,https://github.com/conductor-oss/conductor,GHSA-8gqp-hr9g-pg62,5976cad67bab4204e3ec4b2edd6f6831623c7c9a,e9816501df1e364a3d39d7fe37d6e167c40eaa1b
++141,conductor-oss__conductor_CVE-2025-26074_v3.21.12,CVE-2025-26074,CWE-78,CWE-78: Improper Neutralization of Special Elements used in an OS Command ('OS Command Injection'),conductor-oss,conductor,v3.21.12,https://github.com/conductor-oss/conductor,GHSA-8gqp-hr9g-pg62,5976cad67bab4204e3ec4b2edd6f6831623c7c9a,e9816501df1e364a3d39d7fe37d6e167c40eaa1b
+ 142,jans__CVE-2025-53003_v1.7.0,CVE-2025-53003,CWE-200,CWE-200: Exposure of Sensitive Information to an Unauthorized Actor,JanssenProject,jans,v1.7.0,https://github.com/JanssenProject/jans,GHSA-373j-mhpf-84wg,c8b743763d6177fead693f916d0c14b42612daa9,92eea4d4637f1cae16ad2f07b2c16378ff3fc5f1
+ 143,incubator-seata__CVE-2025-32897_v2.2.0,CVE-2025-32897,CWE-502,CWE-502: Deserialization of Untrusted Data,apache,incubator-seata,v2.2.0,https://github.com/apache/incubator-seata,GHSA-m964-fjrh-xxq2,c95bd08bf1c139bbac323a0e2190cb6bbca2dba3,7eda23e948312ed52c3336de70a11f4d2ab06a48
+ 144,allure2__CVE-2025-52888_2.34.0,CVE-2025-52888,CWE-611,CWE-611: Improper Restriction of XML External Entity Reference,allure-framework,allure2,2.34.0,https://github.com/allure-framework/allure2,GHSA-h7qf-qmf3-85qg,eaa87ff7d93e79074f7a1d785740bd3fed2f89fd,cbcb33719851ff70adce85d38e15d20fc58d4eb7
+@@ -152,7 +152,7 @@ id,project_slug,cve_id,cwe_id,cwe_name,github_username,github_repository_name,gi
+ 151,tomcat__CVE-2025-49125_11.0.7,CVE-2025-49125,CWE-288,CWE-288: Authentication Bypass Using an Alternate Path or Channel,apache,tomcat,11.0.7,https://github.com/apache/tomcat,GHSA-wc4r-xq3c-5cf3,e0e07812224d327a321babb554f5a5758d30cc49,7617b9c247bc77ed0444dd69adcd8aa48777886c
+ 152,tomcat__CVE-2025-48988_11.0.7,CVE-2025-48988,CWE-770,CWE-770: Allocation of Resources Without Limits or Throttling,apache,tomcat,11.0.7,https://github.com/apache/tomcat,GHSA-h3gc-qfqq-6h8f,10c4c2c7bbbe2191b4eef3fad68d30cf89920201,2b0ab14fb55d4edc896e5f1817f2ab76f714ae5e
+ 153,commons-fileupload__CVE-2025-48976_commons-fileupload-1.5-RC1,CVE-2025-48976,CWE-770,CWE-770: Allocation of Resources Without Limits or Throttling,apache,commons-fileupload,commons-fileupload-1.5-RC1,https://github.com/apache/commons-fileupload,GHSA-vv7r-c36w-3prj,24e6cadd3dabf63d9093b277284453c551a01dec,bf68f63cfb312ef4710fb3dfb4d8e4e1665f4497
+-154,solon__CVE-2025-46096_v3.1.2,CVE-2025-46096,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),opensolon,solon,v3.1.2,https://github.com/opensolon/solon,GHSA-m63q-4hr8-5r5h,4fdbc8f37e3e752d4b267b486116399597ea56b4,49a3bf95fdcf050829843004b65a2b336ca6ddff
++154,opensolon__solon_CVE-2025-46096_v3.1.2,CVE-2025-46096,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),opensolon,solon,v3.1.2,https://github.com/opensolon/solon,GHSA-m63q-4hr8-5r5h,4fdbc8f37e3e752d4b267b486116399597ea56b4,49a3bf95fdcf050829843004b65a2b336ca6ddff
+ 155,spring-framework__CVE-2025-41234_v6.2.7,CVE-2025-41234,CWE-113,CWE-113: Improper Neutralization of CRLF Sequences in HTTP Headers ('HTTP Request/Response Splitting'),spring-projects,spring-framework,v6.2.7,https://github.com/spring-projects/spring-framework,GHSA-6r3c-xf4w-jxjm,e86dc9ad95204e71f93e1338cb7ccf379e3fbd70,f0e7b42704e6b33958f242d91bd690d6ef7ada9c
+ 156,geoserver__CVE-2025-30145_2.26.2,CVE-2025-30145,CWE-835,CWE-835: Loop with Unreachable Exit Condition ('Infinite Loop'),geoserver,geoserver,2.26.2,https://github.com/geoserver/geoserver,GHSA-gr67-pwcv-76gf,,
+ 157,geoserver__CVE-2025-27505_2.26.2,CVE-2025-27505,CWE-862,CWE-862: Missing Authorization,geoserver,geoserver,2.26.2,https://github.com/geoserver/geoserver,GHSA-h86g-x8mm-78m5,,
+@@ -206,7 +206,7 @@ id,project_slug,cve_id,cwe_id,cwe_name,github_username,github_repository_name,gi
+ 205,cassandra__CVE-2025-23015_cassandra-5.0-alpha2,CVE-2025-23015,CWE-267,CWE-267: Privilege Defined With Unsafe Actions,apache,cassandra,cassandra-5.0-alpha2,https://github.com/apache/cassandra,GHSA-wmcc-9vch-jmx4,3ddccf45213f69ac282690186484ae7b9c0151ba,6207a305ba2b0cebc3241e00a843ab5dbf86d2ed
+ 206,s3proxy__CVE-2025-24961_s3proxy-2.5.0,CVE-2025-24961,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),gaul,s3proxy,s3proxy-2.5.0,https://github.com/gaul/s3proxy,GHSA-2ccp-vqmv-4r4x,,b0819e0ef5e08c792a4d1724b938714ce9503aa3
+ 207,wildfly-core__CVE-2025-23367_27.0.0.Beta7,CVE-2025-23367,CWE-284,CWE-284: Improper Access Control,wildfly,wildfly-core,27.0.0.Beta7,https://github.com/wildfly/wildfly-core,GHSA-qr6x-62gq-4ccp,,
+-208,djl__CVE-2025-0851_v0.30.0,CVE-2025-0851,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),deepjavalibrary,djl,v0.30.0,https://github.com/deepjavalibrary/djl,GHSA-jcrp-x7w3-ffmg,503289a69c581e2373e12cff78ea2adc03a8d86f,7415cc5f72aae69ea9716a5e4f709af03a77a619
++208,deepjavalibrary__djl_CVE-2025-0851_v0.30.0,CVE-2025-0851,CWE-22,CWE-22: Improper Limitation of a Pathname to a Restricted Directory ('Path Traversal'),deepjavalibrary,djl,v0.30.0,https://github.com/deepjavalibrary/djl,GHSA-jcrp-x7w3-ffmg,503289a69c581e2373e12cff78ea2adc03a8d86f,7415cc5f72aae69ea9716a5e4f709af03a77a619
+ 209,snowflake-jdbc__CVE-2025-24790_v3.21.1,CVE-2025-24790,CWE-276,CWE-276: Incorrect Default Permissions,snowflakedb,snowflake-jdbc,v3.21.1,https://github.com/snowflakedb/snowflake-jdbc,GHSA-33g6-495w-v8j2,3236d9840c61cdffa7093c631539523b9d1d6836,9e1a5acf12406b16c4780ca013f4c4db48b74b59
+ 210,snowflake-jdbc__CVE-2025-24789_v3.21.1,CVE-2025-24789,CWE-426,CWE-426: Untrusted Search Path,snowflakedb,snowflake-jdbc,v3.21.1,https://github.com/snowflakedb/snowflake-jdbc,GHSA-7hpq-3g6w-pvhf,9e1a5acf12406b16c4780ca013f4c4db48b74b59,4f01bb8f9b708c71e7a2111c87371dbfc1d53dd6
+ 211,oic-auth-plugin__CVE-2025-24399_4.452.v2849b_d3945fa_,CVE-2025-24399,CWE-178,CWE-178: Improper Handling of Case Sensitivity,jenkinsci,oic-auth-plugin,4.452.v2849b_d3945fa_,https://github.com/jenkinsci/oic-auth-plugin,GHSA-q9cm-88jx-3vfw,2849bd3945fa4c66fbc89da161d481565f85cdec,4d7765c854f4f5e6e3c26ed950a26042a7527875
