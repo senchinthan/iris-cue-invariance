@@ -32,8 +32,8 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] 3.3 Filters: build ok → giants (plan list + Payara) → buggy commit → ≤15 min → fetch → ≤150K Java SLOC → Docker image exists
 - [x] 3.4 `results/subset.csv`: **46 projects** (34 CWE-22, 12 CWE-78; 2 annotated); all 73 with reasons in `results/subset_all.csv`
 - [x] 3.5 `results/pilot.csv`: 5 projects, SLOC quintiles 4K–125K, 3×CWE-22 + 2×CWE-78, incl. annotated solon (seeded rule)
-- [~] 3.6 CodeQL DBs for pilot via `cueinv/build_dbs.py` (pull → retag if needed → IRIS container build → package-names → `docker rmi`); Q1 data patch `patches/0002`
-- [ ] 3.7 Tests pass; Phase 3 commit
+- [x] 3.6 CodeQL DBs for the 5 pilot projects via `cueinv/build_dbs.py` (pull → retag → IRIS container build with retries → package-names → `docker rmi`); Q1 data patch `patches/0002`. Remaining 41 subset DBs: not built yet (needed for Phase 8)
+- [x] 3.7 Tests pass; Phase 3 commit (`d6c8cf0`)
 
 ## Phase 4 — Deterministic LLM client + baseline labelling
 - [x] 4.1 `cueinv/llm.py` (temp 0, top_k 1, top_p 1, seed, num_ctx 8192, num_predict 2048, num_gpu 99, JSON-schema format, warm-up, qwen3 `think:false`, retry-once, token + GPU logging, jsonl cache, resumable, refuses mixed settings)
@@ -43,11 +43,11 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] 4.5 Tests pass (35); smoke run on plexus-archiver OK (17 ext + 4 int calls, 0 parse failures, 100 % GPU)
 
 ## Phase 5 — Pilot
-- [ ] 5.1 Pilot runs: BASE rep1, BASE rep2, SHUF on 5 projects
-- [ ] 5.2 `cueinv/pilot_report.py` → `results/pilot_report.md`
-- [ ] 5.3 `cueinv/power.py` power simulation (Δ = 5/10/15 pts)
-- [ ] 5.4 Tests pass; Phase 5 commit
-- [ ] **GATE 2** — go/no-go (≥200 projected baseline internal source labels, power ≥0.8 at 10 pts)
+- [x] 5.1 Pilot runs: external + BASE r1/r2 + SHUF r1 on 5 projects, + BASE detection (423 calls, 2 parse failures, 100 % GPU)
+- [x] 5.2 `cueinv/pilot_report.py` → `results/pilot_report.md` (+ schema-vs-free-form diagnostic `cueinv/diag_schema.py`)
+- [x] 5.3 `cueinv/power.py`: binomial + empirical noise models, δ = 0/5/10/15, τ = 0/10, effective N
+- [x] 5.4 Tests pass (37); Phase 5 commit
+- [!] **GATE 2** — **NO-GO as designed**: labels ✅ (443–451 projected) but power ❌ (≤0.06). Cause #1: JSON-schema output empties 38/44 batches (free-form: 0/44; 397 vs 49 labels). Waiting for user decisions D1–D3 in `docs/GATE2.md`
 
 ## Phase 6 — Perturbation layer
 - [ ] 6.1 `cueinv/perturb.py` conditions BASE, SHUF, R_SYN, R_NEU, R_NEU2, R_MIS, D_STRIP, D_MIS, M_README, M_ID, COMBO, H1C
@@ -90,3 +90,4 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - 2026-11-20 — Phase 1 done (commit `bdf851a`): env, CodeQL, Ollama + models, VRAM check, spark quickstart end-to-end. Phase 2 done: RECON.md + tests. **Stopped at GATE 1.**
 - 2026-11-20 — User answered GATE 1 Q1 (keep CVEs) and Q2 (recommended option). Project **paused** by user before Phase 3; resume notes in `memory.md`.
 - 2026-11-21 — User approved the interception design (GATE 1 Q3) and asked to continue. Machine had restarted: Ollama relaunched in tmux with plan env vars. Docker Desktop not running yet.
+- 2026-11-21 — Phase 3 (46-project subset, pilot DBs), Phase 4 (client, labelling) and Phase 5 (pilot, report, power, schema A/B) done. **Stopped at GATE 2** (no-go as designed; decisions D1–D3 in docs/GATE2.md).

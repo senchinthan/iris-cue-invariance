@@ -189,13 +189,29 @@ def write_report(ms: list[dict], proj: dict, power: list[dict], path: Path, camp
         L += ["## Power simulation (`cueinv/power.py`)", "",
               "Project-clustered: N projects drawn from the pilot (label counts, null retention); binomial label noise; "
               "true drop δ (± τ project heterogeneity); percentile bootstrap CI. 'rule' = Δ̂ ≥ 10 pp **and** CI excludes 0.",
-              "", "| δ (pp) | τ (pp) | mean Δ̂ | SD Δ̂ | P(CI>0) α=.05 | P(CI>0) α=.05/7 | P(rule) α=.05 | P(rule) α=.05/7 | P(|Δ̂|≤3) |",
-              "|---|---|---|---|---|---|---|---|---|"]
+              f"Effective N (projects with ≥1 baseline label, projected) = {proj.get('n_effective_projects')}.",
+              "", "| model | N | δ (pp) | τ (pp) | mean Δ̂ | SD Δ̂ | P(CI>0) α=.05 | P(CI>0) α=.05/7 | P(rule) α=.05 | P(rule) α=.05/7 | P(|Δ̂|≤3) |",
+              "|---|---|---|---|---|---|---|---|---|---|---|"]
         for r in power:
-            L.append(f"| {r['delta_pp']:g} | {r['tau_pp']:g} | {r['mean_estimate_pp']} | {r['sd_estimate_pp']} | "
+            L.append(f"| {r['model']} | {r['n_projects']} | {r['delta_pp']:g} | {r['tau_pp']:g} | {r['mean_estimate_pp']} | {r['sd_estimate_pp']} | "
                      f"{r['power_ci_a05']} | {r['power_ci_a05_over_7']} | {r['power_rule_a05']} | "
                      f"{r['power_rule_a05_over_7']} | {r['p_falsified_band']} |")
         L.append("")
+    diag = RESULTS_DIR / "diag_schema.json"
+    if diag.exists():
+        d = json.loads(diag.read_text())
+        L += ["## Diagnostic: JSON-schema constraint vs IRIS free-form output (`cueinv/diag_schema.py`)", "",
+              "Identical BASE internal prompts and decoding; only `format=<schema>` differs. Free-form answers are parsed "
+              "with IRIS's own `parse_json` (iris.py:484-526), then the same batch validation and map-back.", "",
+              "| project | batches | empty batches (schema) | empty batches (free) | source params (schema) | source params (free) | overlap |",
+              "|---|---|---|---|---|---|---|"]
+        for r in d:
+            L.append(f"| `{r['slug']}` | {r['n_batches']} | {r['schema_empty_batches']} | {r['free_empty_batches']} | "
+                     f"{r['schema_source_params']} | {r['free_source_params']} | {r['overlap']} |")
+        tb = sum(r["n_batches"] for r in d)
+        L += [f"| **total** | {tb} | {sum(r['schema_empty_batches'] for r in d)} | {sum(r['free_empty_batches'] for r in d)} | "
+              f"{sum(r['schema_source_params'] for r in d)} | {sum(r['free_source_params'] for r in d)} | "
+              f"{sum(r['overlap'] for r in d)} |", ""]
     path.write_text("\n".join(L) + "\n")
 
 
@@ -222,7 +238,13 @@ def main(argv: list[str] | None = None) -> int:
     pil = [PilotProject(m["slug"], m["base1_source_params"], m["retention_base2"], m["retention_shuf"])
            for m in done if m["base1_source_params"] > 0]
     if pil:
-        power = power_table(pil, len(subset), n_sims=args.n_sims)
+        # Projects without baseline labels drop out of the retention endpoint -> effective N.
+        n_eff = max(2, round(len(subset) * len(pil) / len(done)))
+        proj["n_effective_projects"] = n_eff
+        power = power_table(pil, n_eff, n_sims=args.n_sims)
+        for n_alt in sorted({len(subset), 73}):  # sensitivity: if every subset/pool project had labels
+            power += [r | {"note": f"N={n_alt} sensitivity"} for r in power_table(pil, n_alt, n_sims=args.n_sims // 2,
+                                                                               deltas=(10,), taus=(0.0,))]
     (RESULTS_DIR / "pilot_metrics.json").write_text(json.dumps({"projects": ms, "projections": proj}, indent=2))
     (RESULTS_DIR / "power.json").write_text(json.dumps(power, indent=2))
     write_report(ms, proj, power, RESULTS_DIR / "pilot_report.md", args.campaign, args.model)

@@ -71,3 +71,21 @@ def test_project_metrics_definitions(tmp_path, monkeypatch):
     assert m["retention_base2"] == 1.0 and m["retention_shuf"] == 0.5 and m["null_retention"] == 0.5
     assert m["flip_rate_repeat"] == 0.0 and m["flip_rate_reshuffle"] == 0.2
     assert m["internal_share_calls"] == round(1 / 3, 4)
+
+
+def test_empirical_model_has_more_variance_when_null_retention_is_bimodal():
+    pil = [PilotProject("a", 20, 1.0, 0.0), PilotProject("b", 10, 0.8, 0.8), PilotProject("c", 30, 0.9, 1.0)]
+    b = power.simulate(pil, 30, 10.0, n_sims=200, n_boot=300, seed=4, model="binomial")
+    e = power.simulate(pil, 30, 10.0, n_sims=200, n_boot=300, seed=4, model="empirical")
+    assert e["sd_estimate_pp"] > b["sd_estimate_pp"]
+    assert e["power_ci_a05"] <= b["power_ci_a05"]
+
+
+def test_diag_iris_parse_handles_fenced_output():
+    import importlib.util
+    import pytest
+    if not all(importlib.util.find_spec(m) for m in ("torch", "transformers")):
+        pytest.skip("needs the iris env")
+    from cueinv.diag_schema import iris_parse
+    assert iris_parse('```json\n[{"package": "p", "class": "C"}]\n```') == [{"package": "p", "class": "C"}]
+    assert iris_parse("no json here") == []

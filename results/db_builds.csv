@@ -1,0 +1,11 @@
+slug,docker_tag,image_gb,status,pull_s,build_s,db_mb,package_names,n_packages,timestamp,note
+jenkinsci__workflow-cps-global-lib-plugin_CVE-2022-25174_544.vff04fa68714d,jenkinsci__workflow-cps-global-lib-plugin_CVE-2022-25174_544.vff04fa68714d,0.46,build_failed(rc=1),100,102,,,,2026-11-21T07:02:30.421903+00:00,
+codehaus-plexus__plexus-archiver_CVE-2018-1002200_3.5,codehaus-plexus__plexus-archiver_CVE-2018-1002200_3.5,0.18,built,65,101,7,existing,20,2026-11-21T07:05:52.602348+00:00,
+apache__shiro_CVE-2023-34478_1.11.0,apache__shiro_CVE-2023-34478_1.11.0,0.66,built,124,396,25,existing,97,2026-11-21T07:08:39.689949+00:00,
+x-stream__xstream_CVE-2021-21345_1.4.15,x-stream__xstream_CVE-2021-21345_1.4.15,0.23,built,33,205,16,existing,53,2026-11-21T07:17:23.036238+00:00,
+opensolon__solon_CVE-2025-46096_v3.1.2,solon_CVE-2025-46096_v3.1.2,0.77,built,162,609,52,generated(groupId=org.noear),353,2026-11-21T07:21:21.622180+00:00,
+jenkinsci__workflow-cps-global-lib-plugin_CVE-2022-25174_544.vff04fa68714d,jenkinsci__workflow-cps-global-lib-plugin_CVE-2022-25174_544.vff04fa68714d,0.46,built,86,135,13,existing,13,2026-11-21T07:34:49.799442+00:00,attempts=1
+codehaus-plexus__plexus-archiver_CVE-2018-1002200_3.5,codehaus-plexus__plexus-archiver_CVE-2018-1002200_3.5,0.18,exists,,,11,existing,20,2026-11-21T07:38:30.791355+00:00,
+apache__shiro_CVE-2023-34478_1.11.0,apache__shiro_CVE-2023-34478_1.11.0,0.66,exists,,,25,existing,97,2026-11-21T07:38:30.811913+00:00,
+x-stream__xstream_CVE-2021-21345_1.4.15,x-stream__xstream_CVE-2021-21345_1.4.15,0.23,exists,,,16,existing,53,2026-11-21T07:38:30.842284+00:00,
+opensolon__solon_CVE-2025-46096_v3.1.2,solon_CVE-2025-46096_v3.1.2,0.77,exists,,,56,existing,353,2026-11-21T07:38:30.853006+00:00,

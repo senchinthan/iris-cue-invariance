@@ -1,0 +1,52 @@
+[
+  {
+    "slug": "jenkinsci__workflow-cps-global-lib-plugin_CVE-2022-25174_544.vff04fa68714d",
+    "n_batches": 1,
+    "schema_empty_batches": 1,
+    "schema_source_params": 0,
+    "free_empty_batches": 0,
+    "free_items": 12,
+    "free_source_params": 13,
+    "overlap": 0
+  },
+  {
+    "slug": "codehaus-plexus__plexus-archiver_CVE-2018-1002200_3.5",
+    "n_batches": 4,
+    "schema_empty_batches": 3,
+    "schema_source_params": 19,
+    "free_empty_batches": 0,
+    "free_items": 49,
+    "free_source_params": 59,
+    "overlap": 14
+  },
+  {
+    "slug": "apache__shiro_CVE-2023-34478_1.11.0",
+    "n_batches": 10,
+    "schema_empty_batches": 10,
+    "schema_source_params": 0,
+    "free_empty_batches": 0,
+    "free_items": 70,
+    "free_source_params": 93,
+    "overlap": 0
+  },
+  {
+    "slug": "x-stream__xstream_CVE-2021-21345_1.4.15",
+    "n_batches": 12,
+    "schema_empty_batches": 10,
+    "schema_source_params": 4,
+    "free_empty_batches": 0,
+    "free_items": 68,
+    "free_source_params": 66,
+    "overlap": 4
+  },
+  {
+    "slug": "opensolon__solon_CVE-2025-46096_v3.1.2",
+    "n_batches": 17,
+    "schema_empty_batches": 14,
+    "schema_source_params": 26,
+    "free_empty_batches": 0,
+    "free_items": 143,
+    "free_source_params": 166,
+    "overlap": 26
+  }
+]

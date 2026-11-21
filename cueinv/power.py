@@ -6,6 +6,12 @@ Model of one simulated study with N projects:
   * observed controls  ret_B2, ret_SHUF ~ Binomial(n_p, rho_p) / n_p;  null(p) = min(ret_B2, ret_SHUF)  (plan Phase 9);
   * perturbed channel  ret_c ~ Binomial(n_p, clip(rho_p - delta_p)) / n_p,  delta_p = delta + Normal(0, tau);
   * Delta_hat = mean_p(null(p) - ret_c(p)) in percentage points; CI = percentile bootstrap over projects.
+Two noise models:
+  * 'binomial'  : as above (independent label-level noise; optimistic when labels arrive in all-or-nothing batches);
+  * 'empirical' : each run's retention is drawn from that pilot project's *observed* null retentions
+                  {retention(BASE2), retention(SHUF)}: null(p) = min(r1, r2), ret_c = clip(r3 - delta_p, 0, 1).
+Projects with |S_BASE1| = 0 have undefined retention and are excluded from the endpoint, so callers should pass the
+projected number of projects *with* baseline labels as n_projects.
 Power is reported for
   * 'ci'   : CI lower bound > 0,
   * 'rule' : the pre-registered "supported" rule (Delta_hat >= 10 pp AND CI excludes 0),
@@ -37,7 +43,7 @@ class PilotProject:
 
 
 def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau_pp: float = 0.0, n_sims: int = 1000,
-             n_boot: int = 2000, alphas=(0.05, 0.05 / N_CHANNELS_HOLM), seed: int = 0) -> dict:
+             n_boot: int = 2000, alphas=(0.05, 0.05 / N_CHANNELS_HOLM), seed: int = 0, model: str = "binomial") -> dict:
     usable = [p for p in pilot if p.n_labels > 0]
     if not usable:
         raise ValueError("no pilot project has baseline labels")
@@ -49,11 +55,19 @@ def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau
 
     idx = rng.integers(0, len(usable), size=(n_sims, n_projects))
     n_s, rho_s = n[idx], rho[idx]
-    r_b2 = rng.binomial(n_s, rho_s) / n_s
-    r_sh = rng.binomial(n_s, rho_s) / n_s
-    null = np.minimum(r_b2, r_sh)
     d_p = np.clip(delta + (rng.normal(0, tau, size=n_s.shape) if tau > 0 else 0.0), -1, 1)
-    r_c = rng.binomial(n_s, np.clip(rho_s - d_p, 0, 1)) / n_s
+    if model == "binomial":
+        r_b2 = rng.binomial(n_s, rho_s) / n_s
+        r_sh = rng.binomial(n_s, rho_s) / n_s
+        r_c = rng.binomial(n_s, np.clip(rho_s - d_p, 0, 1)) / n_s
+    elif model == "empirical":
+        pool = np.array([[p.ret_b2, p.ret_shuf] for p in usable])[idx]          # (n_sims, N, 2)
+        pick = lambda: np.take_along_axis(pool, rng.integers(0, 2, size=idx.shape)[..., None], axis=2)[..., 0]  # noqa
+        r_b2, r_sh = pick(), pick()
+        r_c = np.clip(pick() - d_p, 0, 1)
+    else:
+        raise ValueError(model)
+    null = np.minimum(r_b2, r_sh)
     diff = (null - r_c) * 100.0                                    # pp, shape (n_sims, N)
     est = diff.mean(axis=1)
 
@@ -67,7 +81,7 @@ def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau
         for a in alphas:
             lows[a][s0:s1] = np.quantile(boot, a / 2, axis=1)
 
-    out = {"delta_pp": delta_pp, "tau_pp": tau_pp, "n_projects": n_projects, "n_sims": n_sims, "n_boot": n_boot,
+    out = {"model": model, "delta_pp": delta_pp, "tau_pp": tau_pp, "n_projects": n_projects, "n_sims": n_sims, "n_boot": n_boot,
            "mean_estimate_pp": round(float(est.mean()), 2), "sd_estimate_pp": round(float(est.std()), 2)}
     for a in alphas:
         tag = "a05" if abs(a - 0.05) < 1e-12 else f"a05_over_{N_CHANNELS_HOLM}"
@@ -78,8 +92,9 @@ def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau
     return out
 
 
-def power_table(pilot: list[PilotProject], n_projects: int, deltas=(0, 5, 10, 15), taus=(0.0, 10.0), **kw) -> list[dict]:
-    return [simulate(pilot, n_projects, d, tau_pp=t, **kw) for t in taus for d in deltas]
+def power_table(pilot: list[PilotProject], n_projects: int, deltas=(0, 5, 10, 15), taus=(0.0, 10.0),
+                models=("binomial", "empirical"), **kw) -> list[dict]:
+    return [simulate(pilot, n_projects, d, tau_pp=t, model=m, **kw) for m in models for t in taus for d in deltas]
 
 
 if __name__ == "__main__":

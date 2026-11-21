@@ -1,0 +1,14 @@
+{
+  "run_id": "pilot__qwen2.5-coder-7b-instruct-q4_K_M__SHUF__r1",
+  "timestamp": "2026-11-21T07:42:15.722153+00:00",
+  "iris_git_sha": "d2059f299a80a68ea4a0b0315eec2f42b8743776-dirty",
+  "cueinv_git_sha": "d6c8cf070435fb4824e352de39c95097c5ac7669",
+  "ollama_version": "0.40.16",
+  "model": "qwen2.5-coder:7b-instruct-q4_K_M",
+  "model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+  "condition": "SHUF",
+  "rep": 1,
+  "seed": 3200333626,
+  "campaign": "pilot",
+  "seed_rule": "per project: stable_seed(slug, condition)"
+}
