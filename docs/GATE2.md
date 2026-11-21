@@ -117,5 +117,5 @@ the analysis should use the paired per-project difference with a bootstrap, as p
 * D3 (pool channels / widen / add CWE-79): **not needed** under D2(d) — N = 46 already gives power ≈ 1.0 for CI > 0 at 5 pp.
 
 Machine-hours (free-form): internal ≈ 1.8 h per condition (pilot 15 s/call) → ≈ 22 h primary (12 runs) + ≈ 11 h second
-model + external (≈ 22 s/call, ≈ 4,000 calls ≈ 25 h, measured on completion) + detection ≈ 8.5 h + DB builds ≈ 5 h
-→ ≈ 70 h total, inside the plan's 40–70 h range at the upper end.
+model + external (≈ 22 s/call × ≈ 2,660 calls for ≈ 79,900 projected external candidates ≈ 16 h; to be confirmed when the
+pilot-ff external run completes) + detection ≈ 8.5 h + DB builds ≈ 5 h → ≈ 63 h total, inside the plan's 40–70 h range.
