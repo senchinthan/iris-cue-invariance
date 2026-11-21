@@ -59,7 +59,7 @@ Each GATE is a hard stop: work resumes only after the user approves.
 ## Phase 7 — Pre-registration
 - [x] 7.1 `docs/PREREG.md` (hypotheses, endpoints, conditions, decision rule, exclusions E1–E4, pilot, analysis code path, deviations, threats) + frozen confirmatory code `cueinv/analysis.py` (8 tests)
 - [x] 7.2 Commit + `git tag prereg-v1`
-- [~] **GATE 3** — PREREG.md approved by the user (2026-11-21); publishing to a new public GitHub repo (history rewritten to a noreply email, memory.md excluded)
+- [x] **GATE 3** — PREREG.md approved by the user (2026-11-21) and **public**: https://github.com/senchinthan/iris-cue-invariance (tag `prereg-v1`, repo created 2026-11-21T13:44:22Z, pushed 13:44:42Z). History rewritten to the GitHub noreply address; memory.md kept local
 
 ## Phase 8 — Main runs
 - [ ] 8.1 `cueinv/run.py` (resumable, one project at a time, tmux)
@@ -97,3 +97,4 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - 2026-11-21 — Phase 6 done (perturbation layer, 197 tests). No cue condition was run on real LLM outputs before PREREG (dry run only).
 - 2026-11-21 — Phase 7 done: PREREG.md + frozen analysis, tagged prereg-v1. Stopped at GATE 3 (approval + public posting by the user).
 - 2026-11-21 — User approved PREREG.md. Installed gh 2.105.0 + git-filter-repo (conda env `tools`). Waiting for GitHub sign-in to rewrite emails and push.
+- 2026-11-21 — Published: https://github.com/senchinthan/iris-cue-invariance (`prereg-v1`). Next: user permission for the Docker image downloads (Phase 8 DB builds).
