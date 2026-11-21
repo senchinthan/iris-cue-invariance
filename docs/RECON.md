@@ -322,3 +322,12 @@ Windows (`0x24` = SW power cap + SW thermal), so please put the laptop on AC pow
 * `testng-team__testng_CVE-2022-4065_7.5` has **no image** in `irissast/cwe-bench-java-containers-v2` (HTTP 404) → excluded.
 * Container DNS is intermittent on the current (mobile-hotspot) network; IRIS re-clones sources inside the container
   (`build_codeql_dbs.py:325-343`), so `cueinv/build_dbs.py` retries the build up to 3 times.
+
+### GATE 2 D1(a) — output format (2026-11-21)
+* With Ollama `format=<JSON schema>` (plan Phase 4) the model answered `[]` for 38 of 44 internal pilot batches; with IRIS's
+  own free-form output 0 of 44 (397 vs 49 source parameters; `results/diag_schema.json`). The user chose to drop the schema.
+* Implementation: `cueinv/label.py` `DEFAULT_OUTPUT = "free"`: no `format`; responses parsed by IRIS's `parse_json`
+  through `cueinv.iris_bridge.iris_parse`, which classifies IRIS's outcome as ok / recovered (fallback list parsing) /
+  parse_failed using IRIS's own error log. IRIS's fallback is all-or-nothing (one bad object → `[]`).
+  External labels go through IRIS stage 3 unchanged (IRIS parses), our log records the same classification.
+* Internal answers are still validated against the batch and mapped back (unmapped items counted per condition).

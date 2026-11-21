@@ -8,8 +8,14 @@ Every call is appended to runs/<run_id>/llm_calls.jsonl. A call is a cache hit w
 was already recorded; the stored request_sha256 (messages + options + format + think) must then match, otherwise we
 raise — a run_id must never silently mix decoding settings.
 
-Retry policy: on a parse failure the identical request is sent once more. With greedy decoding this normally reproduces the
-same output, so the retry mainly absorbs transient server errors; both attempts are logged and the second outcome wins.
+Output modes (GATE 2 decision D1(a), docs/GATE2.md): by default prompts are sent **without** `format` (IRIS never constrains
+output) and responses are parsed with IRIS's own `parse_json` (`cueinv.iris_bridge.iris_parse`). The schema mode is kept
+for the record (campaign `pilot`): with `format=<schema>` the model answered `[]` for 38/44 internal batches.
+
+Parse statuses: ok | recovered (IRIS's fallback list parsing salvaged items) | truncated (num_predict reached) |
+parse_failed | no_response. Retry policy: on truncated/parse_failed/no_response the identical request is sent once more.
+With greedy decoding this normally reproduces the same output, so the retry mainly absorbs transient server errors; both
+attempts are logged and the second outcome wins.
 """
 
 from __future__ import annotations
@@ -74,6 +80,9 @@ def sha256(obj) -> str:
 
 def prompt_sha256(messages: list[dict]) -> str:
     return sha256([{"role": m["role"], "content": m["content"]} for m in messages])
+
+
+FAILED_STATUSES = ("parse_failed", "truncated", "no_response")
 
 
 def parse_json_list(text: str | None) -> tuple[list | None, str]:
@@ -195,7 +204,9 @@ class OllamaClient:
 
     # -- main entry ----------------------------------------------------------------------------------------------
     def chat(self, messages: list[dict], *, schema: dict | None, condition: str, rep: int,
-             meta: dict | None = None) -> CallResult:
+             meta: dict | None = None, parser=None) -> CallResult:
+        """parser(text) -> (items | None, status); default: strict JSON list (right for schema mode)."""
+        parser = parser or parse_json_list
         phash = prompt_sha256(messages)
         body = self._body(messages, schema)
         rhash = sha256({k: body[k] for k in ("model", "messages", "options") if k in body}
@@ -221,15 +232,16 @@ class OllamaClient:
             except (urllib.error.URLError, TimeoutError, OSError, ValueError) as e:
                 resp, content, err = {}, None, repr(e)[:300]
             wall = time.time() - t0
-            parsed, status = parse_json_list(content)
-            if status == "ok" and resp.get("done_reason") == "length":
-                status = "truncated"  # grammar-valid prefix cut by num_predict cannot be complete JSON, but be explicit
+            if content is None:
+                parsed, status = None, "no_response"
+            else:
+                parsed, status = parser(content)
+                if resp.get("done_reason") == "length":
+                    status = "truncated"  # cut by num_predict; keep whatever the parser salvaged (IRIS would)
             attempts.append({"attempt": attempt, "parse_status": status, "wall_s": round(wall, 3), "error": err,
                              "done_reason": resp.get("done_reason")})
-            if status == "ok":
+            if status not in FAILED_STATUSES:
                 break
-        if status != "ok":
-            status = "parse_failed" if status in ("parse_failed", "truncated") else status
 
         rec = {
             "kind": "call",
@@ -268,9 +280,10 @@ class IrisModelAdapter:
     """Drop-in for IRIS's model object (`SAPipeline.model`, iris.py:278-281): IRIS calls
     `predict(list_of_[system,user]_messages, batch_size=num_threads)` and parses the returned strings itself."""
 
-    def __init__(self, client: OllamaClient, *, condition: str, rep: int = 1, schema: dict | None = EXTERNAL_SCHEMA,
-                 meta: dict | None = None):
+    def __init__(self, client: OllamaClient, *, condition: str, rep: int = 1, schema: dict | None = None,
+                 meta: dict | None = None, parser=None):
         self.client, self.condition, self.rep, self.schema, self.meta = client, condition, rep, schema, meta or {}
+        self.parser = parser  # only for our call log's parse_status; IRIS parses the returned text itself
         self.results: list[CallResult] = []
 
     def predict(self, prompt, batch_size=0, no_progress_bar=False):
@@ -279,7 +292,7 @@ class IrisModelAdapter:
         out = []
         for i, msgs in enumerate(prompts):  # sequential: OLLAMA_NUM_PARALLEL=1 and deterministic order
             r = self.client.chat(msgs, schema=self.schema, condition=self.condition, rep=self.rep,
-                                 meta={**self.meta, "batch_index": i})
+                                 meta={**self.meta, "batch_index": i}, parser=self.parser)
             self.results.append(r)
             # IRIS writes str(response)/response+"\n" (iris.py:590,772): never hand it None
             out.append(r.content if r.content is not None else "[]")

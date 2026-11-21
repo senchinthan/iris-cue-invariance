@@ -47,7 +47,7 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] 5.2 `cueinv/pilot_report.py` → `results/pilot_report.md` (+ schema-vs-free-form diagnostic `cueinv/diag_schema.py`)
 - [x] 5.3 `cueinv/power.py`: binomial + empirical noise models, δ = 0/5/10/15, τ = 0/10, effective N
 - [x] 5.4 Tests pass (37); Phase 5 commit
-- [!] **GATE 2** — **NO-GO as designed**: labels ✅ (443–451 projected) but power ❌ (≤0.06). Cause #1: JSON-schema output empties 38/44 batches (free-form: 0/44; 397 vs 49 labels). Waiting for user decisions D1–D3 in `docs/GATE2.md`
+- [!] **GATE 2** — **NO-GO as designed**: labels ✅ (443–451 projected) but power ❌ (≤0.06). Cause #1: JSON-schema output empties 38/44 batches (free-form: 0/44; 397 vs 49 labels). D1 → (a) approved 2026-11-21 (drop JSON schema, IRIS parsing). Free-form re-pilot `pilot-ff`: ≈ 3,700 labels projected, 0 parse failures; power ≈ 1.0 (CI>0, 5 pp) with a repeat-only noise floor. **Waiting for D2 (noise floor + rule wording) / D3** — see `docs/GATE2.md`
 
 ## Phase 6 — Perturbation layer
 - [ ] 6.1 `cueinv/perturb.py` conditions BASE, SHUF, R_SYN, R_NEU, R_NEU2, R_MIS, D_STRIP, D_MIS, M_README, M_ID, COMBO, H1C
@@ -91,3 +91,5 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - 2026-11-20 — User answered GATE 1 Q1 (keep CVEs) and Q2 (recommended option). Project **paused** by user before Phase 3; resume notes in `memory.md`.
 - 2026-11-21 — User approved the interception design (GATE 1 Q3) and asked to continue. Machine had restarted: Ollama relaunched in tmux with plan env vars. Docker Desktop not running yet.
 - 2026-11-21 — Phase 3 (46-project subset, pilot DBs), Phase 4 (client, labelling) and Phase 5 (pilot, report, power, schema A/B) done. **Stopped at GATE 2** (no-go as designed; decisions D1–D3 in docs/GATE2.md).
+- 2026-11-21 — User chose GATE 2 D1(a): free-form output + IRIS parse_json. Implementing and re-running the pilot as campaign `pilot-ff`.
+- 2026-11-21 — Free-form re-pilot internal controls done (`results/pilot_report_pilot-ff.md`); external + detection still running in tmux `pilotff`. Stopped at GATE 2 for D2/D3.

@@ -62,3 +62,60 @@ subset (e.g. main-code SLOC cap → +3 projects; relax 150K), add CWE-79 (38 CVE
 
 Recommended sequence: approve D1(a) → I re-run the pilot controls free-form and regenerate `results/pilot_report.md` →
 you choose D2 (and D3 if needed) with the new numbers → Phase 6.
+
+## Decisions (user)
+* **D1 → (a)** (2026-11-21): no `format` constraint for external or internal prompts; responses parsed with IRIS's own
+  `parse_json` (iris.py:484-526), then our batch validation + map-back. This deviates from plan Phase 4 ("format=<JSON schema>")
+  and is recorded here and in `docs/RECON.md`. The schema-mode pilot (campaign `pilot`) is kept for the record; the
+  free-form pilot is campaign `pilot-ff`.
+* D2, D3: pending — to be decided on the `pilot-ff` numbers.
+
+## Re-pilot in free-form mode (campaign `pilot-ff`, 2026-11-21) — `results/pilot_report_pilot-ff.md`
+
+Internal controls (BASE r1, BASE r2, SHUF r1) on the same 5 projects; 132 calls, **0 parse failures**, 72 of 983 returned
+items name something outside their batch (7 %, counted as map-back failures). External labels + BASE detection were still
+running when this was written (tmux `pilotff`); they affect only timing and the plumbing check, not D2/D3.
+
+| project | S_BASE1 params | ret BASE2 (repeat) | ret SHUF (reshuffle) | flip repeat | flip reshuffle |
+|---|---|---|---|---|---|
+| jenkins workflow-cps-global-lib | 13 | 1.000 | 0.538 | 0.000 | 0.375 |
+| plexus-archiver | 65 | 0.908 | 0.631 | 0.071 | 0.417 |
+| shiro | 93 | 1.000 | 0.419 | 0.000 | 0.272 |
+| xstream | 68 | 0.721 | 0.250 | 0.102 | 0.241 |
+| solon | 169 | 0.976 | 0.391 | 0.008 | 0.384 |
+
+* Baseline labels: 408 parameters (325 methods) in the pilot → **≈ 3,700 projected** over the 46 projects (criterion ≥ 200 ✅);
+  every pilot project has labels, so N_eff = 46.
+* **Reshuffling is itself a large effect**: changing which methods share a batch moves 37–75 % of the labels
+  (retention 0.25–0.63), while an identical repeat keeps 0.72–1.00. Batch context, not inference noise, dominates.
+
+### Power at N = 46 (`power_pilot-ff.json`), P(CI excludes 0) at α = .05/7 · P(full rule) at α = .05/7
+
+| noise floor null(p) | δ = 5 pp | δ = 10 pp | δ = 15 pp | bias of Δ̂ at δ = 0 |
+|---|---|---|---|---|
+| plan: min(BASE2, SHUF), binomial | 0.10 · 0.00 | 0.93 · 0.01 | 1.00 · 0.86 | −3.4 pp |
+| plan: min(BASE2, SHUF), empirical | 0.00 · 0.00 | 0.00 · 0.00 | 0.03 · 0.03 | −11.8 pp |
+| D2(b): mean(BASE2, SHUF), binomial | – | 1.00 · 0.49 | 1.00 · 1.00 | 0.1 pp |
+| D2(b): mean(BASE2, SHUF), empirical | – | 0.37 · 0.36 | 0.78 · 0.78 | 0.2 pp |
+| **D2(d): BASE2 only (repeat), binomial** | **1.00 · 0.00** | **1.00 · 0.49** | **1.00 · 1.00** | **0.0 pp** |
+
+(The full rule's ≈ 0.49 at δ = 10 is the cap from thresholding Δ̂ ≥ 10; with project heterogeneity τ = 10 pp the
+D2(d) rule power is 0.62 at δ = 10 and 1.00 at δ = 15, but bounded retention then inflates P(CI>0) at δ = 0 to 0.24 —
+the analysis should use the paired per-project difference with a bootstrap, as planned, and report τ.)
+
+### Refined D2 options
+* **D2(d) (recommended)**: every cue condition (R_*, D_*, M_*, COMBO) keeps BASE's batches, so its noise floor is the
+  **repeat** control: `null(p) = retention(BASE2)`. SHUF becomes a **separate, reported effect** (batch-composition
+  sensitivity, itself a finding), not part of the noise floor. Optionally add BASE r3 (+1 run, ≈ 1.8 h) to estimate the repeat
+  noise per project more precisely.
+* D2(a): keep the plan's `min(BASE2, SHUF)` floor — the cue channels would have to beat reshuffle-sized changes; power ≈ 0
+  for 10-pp effects under the empirical model.
+* D2(b): `mean(BASE2, SHUF)` — unbiased but noisy (empirical power 0.36 at δ = 10).
+* **Decision-rule wording (any floor)**: with "supported = Δ̂ ≥ 10 pp and Holm-CI excludes 0", a true 10-pp effect is
+  supported only ~50 % of the time by construction. Options: (i) keep the rule and state the power target as P(rule) ≥ 0.8
+  at δ = 15 pp (met under D2(d)), or (ii) "supported = Holm-CI lower bound ≥ 5 pp" (a margin test).
+* D3 (pool channels / widen / add CWE-79): **not needed** under D2(d) — N = 46 already gives power ≈ 1.0 for CI > 0 at 5 pp.
+
+Machine-hours (free-form): internal ≈ 1.8 h per condition (pilot 15 s/call) → ≈ 22 h primary (12 runs) + ≈ 11 h second
+model + external (≈ 22 s/call, ≈ 4,000 calls ≈ 25 h, measured on completion) + detection ≈ 8.5 h + DB builds ≈ 5 h
+→ ≈ 70 h total, inside the plan's 40–70 h range at the upper end.

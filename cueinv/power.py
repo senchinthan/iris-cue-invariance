@@ -43,13 +43,19 @@ class PilotProject:
 
 
 def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau_pp: float = 0.0, n_sims: int = 1000,
-             n_boot: int = 2000, alphas=(0.05, 0.05 / N_CHANNELS_HOLM), seed: int = 0, model: str = "binomial") -> dict:
+             n_boot: int = 2000, alphas=(0.05, 0.05 / N_CHANNELS_HOLM), seed: int = 0, model: str = "binomial",
+             null_def: str = "min") -> dict:
+    """null_def: 'min' = plan Phase 9 (min of the two controls); 'mean' = GATE 2 option D2(b);
+    'repeat' = GATE 2 option D2(d): null = retention(BASE2) only (the cue conditions keep BASE's batch composition, so their
+    sampling noise is the repeat noise); rho_p = retention(BASE2). Binomial model only (one repeat per project)."""
     usable = [p for p in pilot if p.n_labels > 0]
     if not usable:
         raise ValueError("no pilot project has baseline labels")
     rng = np.random.default_rng(seed)
     n = np.array([p.n_labels for p in usable])
-    rho = np.array([p.rho for p in usable])
+    rho = np.array([p.ret_b2 if null_def == "repeat" else p.rho for p in usable])
+    if null_def == "repeat" and model != "binomial":
+        raise ValueError("null_def='repeat' needs model='binomial' (the pilot has a single repeat per project)")
     delta = delta_pp / 100.0
     tau = tau_pp / 100.0
 
@@ -67,7 +73,14 @@ def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau
         r_c = np.clip(pick() - d_p, 0, 1)
     else:
         raise ValueError(model)
-    null = np.minimum(r_b2, r_sh)
+    if null_def == "repeat":
+        null = r_b2
+    elif null_def == "min":
+        null = np.minimum(r_b2, r_sh)
+    elif null_def == "mean":
+        null = (r_b2 + r_sh) / 2
+    else:
+        raise ValueError(null_def)
     diff = (null - r_c) * 100.0                                    # pp, shape (n_sims, N)
     est = diff.mean(axis=1)
 
@@ -81,7 +94,7 @@ def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau
         for a in alphas:
             lows[a][s0:s1] = np.quantile(boot, a / 2, axis=1)
 
-    out = {"model": model, "delta_pp": delta_pp, "tau_pp": tau_pp, "n_projects": n_projects, "n_sims": n_sims, "n_boot": n_boot,
+    out = {"model": model, "null_def": null_def, "delta_pp": delta_pp, "tau_pp": tau_pp, "n_projects": n_projects, "n_sims": n_sims, "n_boot": n_boot,
            "mean_estimate_pp": round(float(est.mean()), 2), "sd_estimate_pp": round(float(est.std()), 2)}
     for a in alphas:
         tag = "a05" if abs(a - 0.05) < 1e-12 else f"a05_over_{N_CHANNELS_HOLM}"
@@ -93,8 +106,9 @@ def simulate(pilot: list[PilotProject], n_projects: int, delta_pp: float, *, tau
 
 
 def power_table(pilot: list[PilotProject], n_projects: int, deltas=(0, 5, 10, 15), taus=(0.0, 10.0),
-                models=("binomial", "empirical"), **kw) -> list[dict]:
-    return [simulate(pilot, n_projects, d, tau_pp=t, model=m, **kw) for m in models for t in taus for d in deltas]
+                models=("binomial", "empirical"), null_def: str = "min", **kw) -> list[dict]:
+    return [simulate(pilot, n_projects, d, tau_pp=t, model=m, null_def=null_def, **kw)
+            for m in models for t in taus for d in deltas]
 
 
 if __name__ == "__main__":

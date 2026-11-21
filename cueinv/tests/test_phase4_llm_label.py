@@ -169,3 +169,50 @@ def test_map_back_validates_against_batch():
     found, ctr = map_back(view, b, parsed)
     assert found == {c0.key: {c0.params[0]}}
     assert ctr == {"items": 3, "items_unmapped": 2, "params": 2, "params_unmapped": 1}
+
+
+# ---- free-form mode (GATE 2 D1a) ------------------------------------------------------------------------------------
+@needs_iris
+def test_iris_parse_statuses():
+    from cueinv.iris_bridge import iris_parse
+
+    assert iris_parse('```json\n[{"package": "p"}]\n```') == ([{"package": "p"}], "ok")
+    assert iris_parse("[]") == ([], "ok")                          # a genuine empty answer is not a failure
+    assert iris_parse("I cannot find any.")[1] == "parse_failed"   # no JSON array at all
+    items, status = iris_parse('[{"a": 1} {"b": 2}]')             # missing comma: IRIS's fallback salvages both objects
+    assert (items, status) == ([{"a": 1}, {"b": 2}], "recovered")
+    assert iris_parse('[{"a": 1}, {"b": 2,}]') == ([], "parse_failed")  # IRIS's fallback is all-or-nothing
+    assert iris_parse(None) == (None, "no_response")
+
+
+@needs_iris
+def test_output_settings_and_free_mode_sends_no_format(tmp_path):
+    from cueinv import label
+
+    assert label.DEFAULT_OUTPUT == "free"
+    fmt, parser = label.output_settings("free", llm.INTERNAL_SCHEMA)
+    assert fmt is None and parser is not None
+    fmt, parser = label.output_settings("schema", llm.INTERNAL_SCHEMA)
+    assert fmt is llm.INTERNAL_SCHEMA and parser is None
+    with pytest.raises(ValueError):
+        label.output_settings("xml", {})
+
+    fake = FakeOllama(['```json\n[{"x": 1}]\n```'])
+    c = llm.OllamaClient("m", "r", runs_dir=tmp_path, transport=fake)
+    fmt, parser = label.output_settings("free", llm.INTERNAL_SCHEMA)
+    r = c.chat(MSGS, schema=fmt, condition="BASE", rep=1, parser=parser)
+    assert r.parse_status == "ok" and r.parsed == [{"x": 1}]
+    assert "format" not in fake.bodies[-1]
+
+
+def test_truncated_output_is_retried_and_flagged(tmp_path):
+    class Trunc(FakeOllama):
+        def __call__(self, body):
+            r = super().__call__(body)
+            if body["options"].get("num_predict") != 8:
+                r["done_reason"] = "length"
+            return r
+
+    c = llm.OllamaClient("m", "r", runs_dir=tmp_path, transport=Trunc(['[{"a": 1}]', '[{"a": 1}]']))
+    r = c.chat(MSGS, schema=None, condition="BASE", rep=1)
+    assert r.parse_status == "truncated" and len(r.record["attempts"]) == 2 and r.parsed == [{"a": 1}]

@@ -19,7 +19,7 @@ from datetime import datetime, timezone
 from cueinv import RUNS_DIR
 from cueinv.build_dbs import db_exists
 from cueinv.dataset import load_projects
-from cueinv.label import PRIMARY_MODEL, detect, label_external, label_internal
+from cueinv.label import DEFAULT_OUTPUT, OUTPUT_MODES, PRIMARY_MODEL, detect, label_external, label_internal
 
 
 def parse_condition_reps(specs: list[str]) -> list[tuple[str, int]]:
@@ -47,6 +47,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--external", action="store_true", help="label external APIs (once per project x model)")
     ap.add_argument("--conditions", nargs="*", default=[], help="COND[:rep,rep] ...")
     ap.add_argument("--detect", nargs="*", default=[], help="COND[:rep] ... to run IRIS's CodeQL stage on")
+    ap.add_argument("--output", choices=OUTPUT_MODES, default=DEFAULT_OUTPUT,
+                    help="free = IRIS free-form + IRIS parse_json (GATE 2 D1a); schema = JSON-schema constrained")
     args = ap.parse_args(argv)
 
     RUNS_DIR.mkdir(exist_ok=True)
@@ -57,7 +59,7 @@ def main(argv: list[str] | None = None) -> int:
     failures = 0
     for slug in slugs:
         project = by_slug[slug]
-        base = {"campaign": args.campaign, "slug": slug, "model": args.model}
+        base = {"campaign": args.campaign, "slug": slug, "model": args.model, "output": args.output}
         if not db_exists(slug):
             log_progress(args.campaign, {**base, "step": "db", "status": "missing_db"})
             failures += 1
@@ -68,10 +70,10 @@ def main(argv: list[str] | None = None) -> int:
             t0 = time.time()
             try:
                 if kind == "external":
-                    s = label_external(project, args.model, args.campaign)
+                    s = label_external(project, args.model, args.campaign, args.output)
                     info = {"n_calls": s["n_calls"], "n_parse_failed": s["n_parse_failed"], "labels": s["labels"]}
                 elif kind == "internal":
-                    s = label_internal(project, cond, rep, args.model, args.campaign).stats
+                    s = label_internal(project, cond, rep, args.model, args.campaign, args.output).stats
                     info = {k: s[k] for k in ("n_internal_candidates", "n_calls", "n_parse_failed", "n_source_params",
                                               "items_unmapped")}
                 else:

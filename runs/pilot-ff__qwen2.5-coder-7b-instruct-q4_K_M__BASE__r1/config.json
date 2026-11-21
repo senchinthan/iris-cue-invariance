@@ -1,0 +1,15 @@
+{
+  "run_id": "pilot-ff__qwen2.5-coder-7b-instruct-q4_K_M__BASE__r1",
+  "timestamp": "2026-11-21T10:54:31.867306+00:00",
+  "iris_git_sha": "d2059f299a80a68ea4a0b0315eec2f42b8743776-dirty",
+  "cueinv_git_sha": "570f2cc4732ae59b4cc398d50283449d1d29af10-dirty",
+  "ollama_version": "0.40.16",
+  "model": "qwen2.5-coder:7b-instruct-q4_K_M",
+  "model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+  "condition": "BASE",
+  "rep": 1,
+  "seed": 2168722199,
+  "campaign": "pilot-ff",
+  "output": "free",
+  "seed_rule": "per project: stable_seed(slug, condition)"
+}

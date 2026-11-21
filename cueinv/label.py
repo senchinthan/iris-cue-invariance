@@ -21,11 +21,23 @@ from pathlib import Path
 from cueinv import RUNS_DIR
 from cueinv import iris_bridge as ib
 from cueinv.dataset import Project
-from cueinv.llm import EXTERNAL_SCHEMA, INTERNAL_SCHEMA, IrisModelAdapter, OllamaClient
+from cueinv.llm import EXTERNAL_SCHEMA, FAILED_STATUSES, INTERNAL_SCHEMA, IrisModelAdapter, OllamaClient
 from cueinv.perturb import PromptView, make_view, stable_seed
 from cueinv.runlog import write_config
 
 PRIMARY_MODEL = "qwen2.5-coder:7b-instruct-q4_K_M"
+# GATE 2 D1(a): free-form output parsed with IRIS's parse_json. "schema" reproduces the original plan-Phase-4 setting.
+DEFAULT_OUTPUT = "free"
+OUTPUT_MODES = ("free", "schema")
+
+
+def output_settings(output: str, schema: dict):
+    """(format schema or None, parser) for an output mode."""
+    if output == "schema":
+        return schema, None          # strict JSON parser (llm.parse_json_list)
+    if output == "free":
+        return None, ib.iris_parse   # IRIS's own parser
+    raise ValueError(f"unknown output mode {output!r}; expected one of {OUTPUT_MODES}")
 
 
 def run_id_for(campaign: str, model: str, condition: str, rep: int) -> str:
@@ -76,7 +88,8 @@ def shared_inputs(project: Project, model: str, campaign: str) -> Shared:
 
 
 # ---------------------------------------------------------------------------------------------------------------
-def label_external(project: Project, model: str = PRIMARY_MODEL, campaign: str = "main") -> dict:
+def label_external(project: Project, model: str = PRIMARY_MODEL, campaign: str = "main",
+                   output: str = DEFAULT_OUTPUT) -> dict:
     sh = shared_inputs(project, model, campaign)
     run_id = run_id_for(campaign, model, "EXT", 1)
     run_dir = RUNS_DIR / run_id
@@ -84,16 +97,19 @@ def label_external(project: Project, model: str = PRIMARY_MODEL, campaign: str =
     if out.exists():
         return json.loads(out.read_text())
     if not (run_dir / "config.json").exists():
-        write_config(run_id, model=model, condition="EXT", rep=1, seed=0, campaign=campaign,
+        write_config(run_id, model=model, condition="EXT", rep=1, seed=0, campaign=campaign, output=output,
                      note="external labels via IRIS stage 3 with injected client")
     client = OllamaClient(model, run_id)
-    adapter = IrisModelAdapter(client, condition="EXT", rep=1, schema=EXTERNAL_SCHEMA, meta={"slug": project.slug})
+    fmt, parser = output_settings(output, EXTERNAL_SCHEMA)
+    adapter = IrisModelAdapter(client, condition="EXT", rep=1, schema=fmt, parser=parser, meta={"slug": project.slug})
     t0 = time.time()
     hashes = ib.run_external_labelling(sh.pipeline, adapter)
     summary = {
         "slug": project.slug, "model": model, "n_external_candidates": sh.n_external_candidates,
         "n_calls": len(adapter.results), "n_cached": sum(r.cached for r in adapter.results),
-        "n_parse_failed": sum(r.parse_status != "ok" for r in adapter.results),
+        "output": output,
+        "n_parse_failed": sum(r.parse_status in FAILED_STATUSES for r in adapter.results),
+        "n_recovered": sum(r.parse_status == "recovered" for r in adapter.results),
         "wall_s": round(time.time() - t0, 1), "candidates_s": sh.candidates_s,
         "labels": ib.external_label_counts(sh.pipeline),
         "external_prompt_sha256": hashes,
@@ -148,14 +164,14 @@ def map_back(view: PromptView, batch, parsed: list[dict] | None) -> tuple[dict, 
 
 
 def label_internal(project: Project, condition: str, rep: int, model: str = PRIMARY_MODEL,
-                   campaign: str = "main") -> InternalResult:
+                   campaign: str = "main", output: str = DEFAULT_OUTPUT) -> InternalResult:
     sh = shared_inputs(project, model, campaign)
     run_id = run_id_for(campaign, model, condition, rep)
     run_dir = RUNS_DIR / run_id
     lab_dir = run_dir / "labels" / project.slug
     seed = condition_seed(project, condition)
     if not (run_dir / "config.json").exists():
-        write_config(run_id, model=model, condition=condition, rep=rep, seed=seed, campaign=campaign,
+        write_config(run_id, model=model, condition=condition, rep=rep, seed=seed, campaign=campaign, output=output,
                      seed_rule="per project: stable_seed(slug, condition)")
     if (lab_dir / "stats.json").exists():
         labels = json.loads((lab_dir / "llm_labelled_source_func_params.json").read_text())
@@ -164,12 +180,13 @@ def label_internal(project: Project, condition: str, rep: int, model: str = PRIM
 
     view = make_view(sh.candidates, sh.readme, sh.owner, sh.name, condition, seed)
     client = OllamaClient(model, run_id)
+    fmt, parser = output_settings(output, INTERNAL_SCHEMA)
     found: dict[tuple[str, str, str], set[str]] = {}
     totals = {"items": 0, "items_unmapped": 0, "params": 0, "params_unmapped": 0}
     calls = []
     for bi, b in enumerate(view.batches):
         msgs = build_messages(view, b)
-        r = client.chat(msgs, schema=INTERNAL_SCHEMA, condition=condition, rep=rep,
+        r = client.chat(msgs, schema=fmt, condition=condition, rep=rep, parser=parser,
                         meta={"slug": project.slug, "batch_index": bi, "batch_keys": [list(c.key) for c in b]})
         f, ctr = map_back(view, b, r.parsed)
         for k, v in f.items():
@@ -191,7 +208,9 @@ def label_internal(project: Project, condition: str, rep: int, model: str = PRIM
         "slug": project.slug, "condition": condition, "rep": rep, "model": model, "seed": seed,
         "n_internal_candidates": len(sh.candidates), "n_internal_params": n_params_total,
         "n_external_candidates": sh.n_external_candidates, "n_batches": len(view.batches),
-        "n_calls": len(calls), "n_parse_failed": sum(c["parse_status"] != "ok" for c in calls),
+        "output": output,
+        "n_calls": len(calls), "n_parse_failed": sum(c["parse_status"] in FAILED_STATUSES for c in calls),
+        "n_recovered": sum(c["parse_status"] == "recovered" for c in calls),
         "n_methods_labelled": len(labels), "n_source_params": len(source_params), **totals,
         "calls": calls,
     }

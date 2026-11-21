@@ -89,3 +89,19 @@ def test_diag_iris_parse_handles_fenced_output():
     from cueinv.diag_schema import iris_parse
     assert iris_parse('```json\n[{"package": "p", "class": "C"}]\n```') == [{"package": "p", "class": "C"}]
     assert iris_parse("no json here") == []
+
+
+def test_mean_null_removes_negative_bias_under_no_effect():
+    pil = [PilotProject("a", 20, 0.9, 0.6), PilotProject("b", 30, 0.8, 0.7), PilotProject("c", 25, 1.0, 0.5)]
+    mn = power.simulate(pil, 30, 0.0, n_sims=300, n_boot=200, seed=5, null_def="min")
+    me = power.simulate(pil, 30, 0.0, n_sims=300, n_boot=200, seed=5, null_def="mean")
+    assert mn["mean_estimate_pp"] < -3 and abs(me["mean_estimate_pp"]) < 2.5
+
+
+def test_repeat_null_uses_base2_only():
+    pil = [PilotProject("a", 40, 1.0, 0.2), PilotProject("b", 40, 1.0, 0.3)]
+    r = power.simulate(pil, 30, 10.0, n_sims=200, n_boot=200, seed=6, null_def="repeat")
+    assert abs(r["mean_estimate_pp"] - 10) < 1.0          # SHUF's low retention is ignored
+    import pytest
+    with pytest.raises(ValueError):
+        power.simulate(pil, 30, 10.0, n_sims=10, n_boot=10, model="empirical", null_def="repeat")

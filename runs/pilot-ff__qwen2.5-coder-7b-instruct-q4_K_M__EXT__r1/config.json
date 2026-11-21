@@ -1,0 +1,15 @@
+{
+  "run_id": "pilot-ff__qwen2.5-coder-7b-instruct-q4_K_M__EXT__r1",
+  "timestamp": "2026-11-21T11:29:15.508696+00:00",
+  "iris_git_sha": "d2059f299a80a68ea4a0b0315eec2f42b8743776-dirty",
+  "cueinv_git_sha": "570f2cc4732ae59b4cc398d50283449d1d29af10-dirty",
+  "ollama_version": "0.40.16",
+  "model": "qwen2.5-coder:7b-instruct-q4_K_M",
+  "model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+  "condition": "EXT",
+  "rep": 1,
+  "seed": 0,
+  "campaign": "pilot-ff",
+  "output": "free",
+  "note": "external labels via IRIS stage 3 with injected client"
+}

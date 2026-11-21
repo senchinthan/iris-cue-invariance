@@ -164,3 +164,34 @@ def run_detection(shared_p, project: Project, iris_run_id: str, internal_labels_
     res = json.load(open(p.final_output_json_path))
     res["iris_output_dir"] = p.project_output_path
     return res
+
+
+# ---- IRIS's response parser (free-form mode, GATE 2 D1(a)) -----------------------------------------------------------
+class _ErrorLog:
+    def __init__(self):
+        self.errors = []
+
+    def info(self, *a, **k):
+        pass
+
+    def error(self, m, *a, **k):
+        self.errors.append(str(m))
+
+
+def iris_parse(text: str | None) -> tuple[list | None, str]:
+    """Parse exactly as IRIS does (iris.py:484-526) and classify the outcome from IRIS's own error log:
+    ok (no error; a genuine `[]` is ok), recovered (IRIS's fallback list parsing salvaged items), parse_failed."""
+    if text is None:
+        return None, "no_response"
+    ensure_iris_importable()
+    from src.iris import SAPipeline  # noqa: E402
+
+    p = SAPipeline.__new__(SAPipeline)
+    log = _ErrorLog()
+    p.project_logger = log
+    with contextlib.redirect_stdout(io.StringIO()):
+        items = p.parse_json(text)
+    items = [x for x in (items or []) if isinstance(x, dict)]
+    if not log.errors:
+        return items, "ok"
+    return (items, "recovered") if items else (items, "parse_failed")

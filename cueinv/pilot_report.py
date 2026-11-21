@@ -20,6 +20,7 @@ from pathlib import Path
 
 from cueinv import RESULTS_DIR, RUNS_DIR
 from cueinv.label import PRIMARY_MODEL, run_id_for
+from cueinv.llm import FAILED_STATUSES
 from cueinv.power import PilotProject, power_table
 
 # Main-run workload (plan Phases 8): internal LLM runs per project per model, detection runs per project.
@@ -46,16 +47,20 @@ def project_metrics(slug: str, campaign: str, model: str) -> dict:
     sts = _load(RUNS_DIR / rid("SHUF", 1) / "labels" / slug / "stats.json")
     det = _load(RUNS_DIR / rid("BASE", 1) / "detection" / f"{slug}.json")
     s1, s2, ss = _params(rid("BASE", 1), slug), _params(rid("BASE", 2), slug), _params(rid("SHUF", 1), slug)
-    m = {"slug": slug, "complete": all(x is not None for x in (ext, st1, st2, sts))}
+    m = {"slug": slug, "complete": all(x is not None for x in (st1, st2, sts)), "has_external": ext is not None}
     if not m["complete"]:
         return m
+    if ext is None:  # internal controls are enough for the retention endpoint and power; external fills in later
+        ext = {"n_external_candidates": st1.get("n_external_candidates") or 0, "n_calls": 0, "n_parse_failed": 0,
+               "labels": None, "candidates_s": None}
     n_int, n_ext, n_par = st1["n_internal_candidates"], ext["n_external_candidates"], st1["n_internal_params"]
 
     def ret(s):
         return (len(s1 & s) / len(s1)) if s1 else None
 
     calls = [c for s in (st1, st2, sts) for c in s["calls"]]
-    ext_calls = [json.loads(l) for l in open(RUNS_DIR / rid("EXT", 1) / "llm_calls.jsonl")]
+    ext_log = RUNS_DIR / rid("EXT", 1) / "llm_calls.jsonl"
+    ext_calls = [json.loads(l) for l in open(ext_log)] if (ext_log.exists() and m["has_external"]) else []
     ext_calls = [c for c in ext_calls if c.get("kind") == "call" and c.get("meta", {}).get("slug") == slug]
     all_calls = calls + [{"wall_s": c["wall_s"], "vram_used_mib": c.get("vram_used_mib"),
                           "gpu_fraction": c.get("gpu_fraction"), "parse_status": c["parse_status"]} for c in ext_calls]
@@ -63,13 +68,15 @@ def project_metrics(slug: str, campaign: str, model: str) -> dict:
         "n_external_candidates": n_ext, "n_internal_candidates": n_int, "n_internal_params": n_par,
         "internal_share_rows": round(n_int / (n_int + n_ext), 4) if (n_int + n_ext) else None,
         "n_internal_calls": st1["n_calls"], "n_external_calls": ext["n_calls"],
-        "internal_share_calls": round(st1["n_calls"] / (st1["n_calls"] + ext["n_calls"]), 4),
+        "internal_share_calls": round(st1["n_calls"] / (st1["n_calls"] + ext["n_calls"]), 4) if ext["n_calls"] else None,
         "base1_source_params": len(s1), "base1_methods": st1["n_methods_labelled"],
         "base2_source_params": len(s2), "shuf_source_params": len(ss),
         "retention_base2": ret(s2), "retention_shuf": ret(ss),
         "flip_rate_repeat": round(len(s1 ^ s2) / n_par, 4) if n_par else None,
         "flip_rate_reshuffle": round(len(s1 ^ ss) / n_par, 4) if n_par else None,
-        "internal_parse_failed_calls": sum(c["parse_status"] != "ok" for c in calls),
+        "internal_parse_failed_calls": sum(c["parse_status"] in FAILED_STATUSES for c in calls),
+        "internal_recovered_calls": sum(c["parse_status"] == "recovered" for c in calls),
+        "output": st1.get("output", "schema"),
         "internal_calls_total": len(calls),
         "external_parse_failed_calls": ext["n_parse_failed"],
         "items_returned": sum(s["items"] for s in (st1, st2, sts)),
@@ -109,7 +116,9 @@ def projections(ms: list[dict], subset: list[dict], db_rows: dict) -> dict:
     sloc_pil = sum(int(next(r for r in subset if r["slug"] == m["slug"])["sloc"]) for m in ms)
 
     def both(key):
-        vals = [m[key] for m in ms]
+        vals = [m[key] for m in ms if m.get(key) is not None]
+        if len(vals) < len(ms) or not vals:
+            return {"mean_x_N": None, "sloc_ratio": None}
         return {"mean_x_N": round(st.mean(vals) * N, 1), "sloc_ratio": round(sum(vals) / sloc_pil * sloc_sub, 1)}
 
     out = {"N_subset": N, "sloc_subset": sloc_sub, "sloc_pilot": sloc_pil}
@@ -118,7 +127,8 @@ def projections(ms: list[dict], subset: list[dict], db_rows: dict) -> dict:
         out[k] = both(k)
     # machine-hours (use the larger of the two estimators, conservative)
     int_h = max(out["internal_s_per_condition"].values()) / 3600
-    ext_h = max(out["external_s"].values()) / 3600
+    ext_h = (max(out["external_s"].values()) / 3600) if out["external_s"]["mean_x_N"] is not None and all(
+        m["has_external"] for m in ms) else None
     det_s = [m["detection_s"] for m in ms if m.get("detection_s")]
     det_h = (st.mean(det_s) * N / 3600) if det_s else None
     cand_s = [m["codeql_candidates_s"] for m in ms if m.get("codeql_candidates_s")]
@@ -126,7 +136,7 @@ def projections(ms: list[dict], subset: list[dict], db_rows: dict) -> dict:
             for m in ms if m["slug"] in db_rows and db_rows[m["slug"]].get("build_s")]
     out["hours"] = {
         "per_internal_condition_primary": round(int_h, 2),
-        "external_once_primary": round(ext_h, 2),
+        "external_once_primary": round(ext_h, 2) if ext_h is not None else None,
         "primary_internal_all_conditions": round(int_h * sum(PRIMARY_INTERNAL_RUNS.values()), 2),
         "second_model_internal_all_conditions_assuming_same_speed": round(int_h * sum(SECOND_INTERNAL_RUNS.values()), 2),
         "per_detection_condition": round(det_h, 2) if det_h is not None else None,
@@ -142,7 +152,8 @@ def projections(ms: list[dict], subset: list[dict], db_rows: dict) -> dict:
 
 def write_report(ms: list[dict], proj: dict, power: list[dict], path: Path, campaign: str, model: str) -> None:
     done = [m for m in ms if m["complete"]]
-    L = [f"# Pilot report ({campaign}, `{model}`)", "",
+    mode = next((m.get("output") for m in ms if m.get("complete")), "?")
+    L = [f"# Pilot report ({campaign}, `{model}`, output mode: {mode})", "",
          f"Generated by `cueinv/pilot_report.py`. Projects complete: {len(done)}/{len(ms)}. "
          "Definitions: S = internal parameters labelled source; retention(c) = |S_BASE1 ∩ S_c| / |S_BASE1|; "
          "flip(c) = |S_BASE1 △ S_c| / #internal candidate parameters; null = min(retention BASE2, retention SHUF).", "",
@@ -172,7 +183,7 @@ def write_report(ms: list[dict], proj: dict, power: list[dict], path: Path, camp
               f"{sum(m['internal_calls_total'] + m['n_external_calls'] for m in done)} calls; unmapped items "
               f"{tot('items_unmapped')} of {tot('items_returned')}; unmapped params {tot('params_unmapped')}",
               f"* Mean s/call: internal {st.mean(m['mean_s_internal_call'] for m in done):.1f}, external "
-              f"{st.mean(m['mean_s_external_call'] for m in done if m['mean_s_external_call']):.1f}; "
+              f"{_fmt(st.mean(ext_s), 1) if (ext_s := [m['mean_s_external_call'] for m in done if m['mean_s_external_call']]) else '– (not run yet)'}; "
               f"VRAM peak {max(m['vram_peak_mib'] for m in done)} MiB; min GPU fraction {min(m['min_gpu_fraction'] for m in done)}",
               ""]
     if proj:
@@ -180,7 +191,8 @@ def write_report(ms: list[dict], proj: dict, power: list[dict], path: Path, camp
               f"N = {proj['N_subset']} projects, {proj['sloc_subset']:,} Java SLOC (pilot {proj['sloc_pilot']:,}).", "",
               "| quantity | mean × N | Java-SLOC ratio |", "|---|---|---|"]
         for k in ("base1_source_params", "base1_methods", "n_internal_candidates", "n_external_candidates"):
-            L.append(f"| {k} | {proj[k]['mean_x_N']:,} | {proj[k]['sloc_ratio']:,} |")
+            a, b = proj[k]["mean_x_N"], proj[k]["sloc_ratio"]
+            L.append(f"| {k} | {f'{a:,}' if a is not None else '–'} | {f'{b:,}' if b is not None else '–'} |")
         L += ["", "Machine-hours (conservative = larger estimator):", "", "| item | hours |", "|---|---|"]
         for k, v in proj["hours"].items():
             L.append(f"| {k} | {_fmt(v, 2)} |")
@@ -190,10 +202,10 @@ def write_report(ms: list[dict], proj: dict, power: list[dict], path: Path, camp
               "Project-clustered: N projects drawn from the pilot (label counts, null retention); binomial label noise; "
               "true drop δ (± τ project heterogeneity); percentile bootstrap CI. 'rule' = Δ̂ ≥ 10 pp **and** CI excludes 0.",
               f"Effective N (projects with ≥1 baseline label, projected) = {proj.get('n_effective_projects')}.",
-              "", "| model | N | δ (pp) | τ (pp) | mean Δ̂ | SD Δ̂ | P(CI>0) α=.05 | P(CI>0) α=.05/7 | P(rule) α=.05 | P(rule) α=.05/7 | P(|Δ̂|≤3) |",
-              "|---|---|---|---|---|---|---|---|---|---|---|"]
+              "", "| model | null | N | δ (pp) | τ (pp) | mean Δ̂ | SD Δ̂ | P(CI>0) α=.05 | P(CI>0) α=.05/7 | P(rule) α=.05 | P(rule) α=.05/7 | P(|Δ̂|≤3) |",
+              "|---|---|---|---|---|---|---|---|---|---|---|---|"]
         for r in power:
-            L.append(f"| {r['model']} | {r['n_projects']} | {r['delta_pp']:g} | {r['tau_pp']:g} | {r['mean_estimate_pp']} | {r['sd_estimate_pp']} | "
+            L.append(f"| {r['model']} | {r.get('null_def', 'min')} | {r['n_projects']} | {r['delta_pp']:g} | {r['tau_pp']:g} | {r['mean_estimate_pp']} | {r['sd_estimate_pp']} | "
                      f"{r['power_ci_a05']} | {r['power_ci_a05_over_7']} | {r['power_rule_a05']} | "
                      f"{r['power_rule_a05_over_7']} | {r['p_falsified_band']} |")
         L.append("")
@@ -222,6 +234,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--pilot", default=str(RESULTS_DIR / "pilot.csv"))
     ap.add_argument("--subset", default=str(RESULTS_DIR / "subset.csv"))
     ap.add_argument("--n-sims", type=int, default=1000)
+    ap.add_argument("--main", action="store_true",
+                    help="also write results/pilot_report.md (the report for the design currently in force)")
     args = ap.parse_args(argv)
 
     slugs = [r["slug"] for r in csv.DictReader(open(args.pilot))]
@@ -242,13 +256,26 @@ def main(argv: list[str] | None = None) -> int:
         n_eff = max(2, round(len(subset) * len(pil) / len(done)))
         proj["n_effective_projects"] = n_eff
         power = power_table(pil, n_eff, n_sims=args.n_sims)
+        # D2(b) sensitivity: mean-of-controls noise floor
+        power += [r | {"note": "D2(b) null=mean"} for r in power_table(pil, n_eff, n_sims=args.n_sims, deltas=(0, 10, 15),
+                                                                     taus=(0.0,), null_def="mean")]
+        # D2(d) sensitivity: repeat-only noise floor for same-batch-composition conditions
+        power += [r | {"note": "D2(d) null=repeat"} for r in power_table(pil, n_eff, n_sims=args.n_sims,
+                                                                       deltas=(0, 5, 10, 15), taus=(0.0, 10.0),
+                                                                       models=("binomial",), null_def="repeat")]
         for n_alt in sorted({len(subset), 73}):  # sensitivity: if every subset/pool project had labels
             power += [r | {"note": f"N={n_alt} sensitivity"} for r in power_table(pil, n_alt, n_sims=args.n_sims // 2,
                                                                                deltas=(10,), taus=(0.0,))]
-    (RESULTS_DIR / "pilot_metrics.json").write_text(json.dumps({"projects": ms, "projections": proj}, indent=2))
-    (RESULTS_DIR / "power.json").write_text(json.dumps(power, indent=2))
-    write_report(ms, proj, power, RESULTS_DIR / "pilot_report.md", args.campaign, args.model)
-    print((RESULTS_DIR / "pilot_report.md").read_text())
+    c = args.campaign
+    (RESULTS_DIR / f"pilot_metrics_{c}.json").write_text(json.dumps({"projects": ms, "projections": proj}, indent=2))
+    (RESULTS_DIR / f"power_{c}.json").write_text(json.dumps(power, indent=2))
+    report = RESULTS_DIR / f"pilot_report_{c}.md"
+    write_report(ms, proj, power, report, c, args.model)
+    if args.main:
+        for a, b in ((report, "pilot_report.md"), (RESULTS_DIR / f"pilot_metrics_{c}.json", "pilot_metrics.json"),
+                     (RESULTS_DIR / f"power_{c}.json", "power.json")):
+            (RESULTS_DIR / b).write_text(a.read_text())
+    print(report.read_text())
     return 0
 
 
