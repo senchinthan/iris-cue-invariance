@@ -9,3 +9,6 @@ __pycache__/
 # large binary artefacts
 *.tar.gz
 *.zip
+
+# personal resume notes (kept local, not published)
+memory.md
