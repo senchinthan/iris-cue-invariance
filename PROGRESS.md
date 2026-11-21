@@ -62,7 +62,7 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] **GATE 3** — PREREG.md approved by the user (2026-11-21) and **public**: https://github.com/senchinthan/iris-cue-invariance (tag `prereg-v1`, repo created 2026-11-21T13:44:22Z, pushed 13:44:42Z). History rewritten to the GitHub noreply address; memory.md kept local
 
 ## Phase 8 — Main runs
-- [ ] 8.0 CodeQL DBs for the 41 remaining subset projects (user permission 2026-11-21: download OK; nothing > 6 h of machine time without asking). Running in tmux `dbs` with `--max-hours 5.75` since 16:09 → `results/db_builds.csv`, `logs/dbs/build_subset.log`
+- [ ] 8.0 CodeQL DBs for the 41 remaining subset projects (user permission 2026-11-21: download OK; nothing > 6 h of machine time without asking). Started 16:09 in tmux `dbs` (`--max-hours 5.75`); stopped 16:23 for a machine shutdown after 2/41 built — resume with the same command (see memory.md §0) → `results/db_builds.csv`, `logs/dbs/build_subset.log`
 - [ ] 8.1 `cueinv/run.py` (resumable, one project at a time, tmux)
 - [ ] 8.2 Primary model: external once + all internal conditions (BASE ×2)
 - [ ] 8.3 Second model `qwen3:4b`: BASE ×2, SHUF, R_NEU, D_STRIP, M_README
