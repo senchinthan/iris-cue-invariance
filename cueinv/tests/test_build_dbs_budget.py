@@ -30,3 +30,9 @@ def test_dl_status_parses_build_log():
             "[16:14:50] b ...\n")
     starts, recs = parse_log(text)
     assert [s for _, s in starts] == ["a", "b"] and recs["a"]["pull_s"] == 194 and "b" not in recs
+
+
+def test_dl_status_uses_latest_job_start():
+    from cueinv.dl_status import last_job_start
+    t = "JOB START 2026-11-21 16:09:03 max_hours=5.75\n[16:09:03] a ...\nJOB START 2026-11-22 09:00:00 max_hours=5.75\n"
+    assert last_job_start(t).isoformat() == "2026-11-22T09:00:00" and last_job_start("[16:09:03] a ...") is None

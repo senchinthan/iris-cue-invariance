@@ -25,8 +25,15 @@ from cueinv import CAPSTONE_ROOT, RESULTS_DIR
 LOG = CAPSTONE_ROOT / "logs" / "dbs" / "build_subset.log"
 BUDGET_H, MIN_START_MIN = 5.75, 20
 START_RE = re.compile(r"^\[(\d\d:\d\d:\d\d)\] (\S+) \.\.\.$")
+JOB_RE = re.compile(r"^JOB START (\d{4}-\d\d-\d\d \d\d:\d\d:\d\d)", re.M)
 PS = ("(Get-NetAdapterStatistics | Where-Object { $_.Name -notlike 'vEthernet*' } "
       "| Measure-Object -Property ReceivedBytes -Sum).Sum")
+
+
+def last_job_start(text: str) -> datetime | None:
+    """Start time of the most recent run (build_dbs prints a JOB START line; older logs do not have one)."""
+    found = JOB_RE.findall(text)
+    return datetime.strptime(found[-1], "%Y-%m-%d %H:%M:%S") if found else None
 
 
 def parse_log(text: str) -> tuple[list[tuple[str, str]], dict[str, dict]]:
@@ -64,21 +71,28 @@ def fmt_td(sec: float) -> str:
 
 
 def snapshot(sizes: dict[str, float], tags: dict[str, str], rate: float | None, rx_cur: float | None) -> str:
-    starts, recs = parse_log(LOG.read_text() if LOG.exists() else "")
+    text = LOG.read_text() if LOG.exists() else ""
+    starts, recs = parse_log(text)
     total_gb = sum(sizes.values())
     now = datetime.now()
     lines = [f"DB build job — {now:%H:%M:%S}", ""]
     if not starts:
         return "\n".join(lines + ["job has not started yet"])
-    t0 = datetime.combine(now.date(), datetime.strptime(starts[0][0], "%H:%M:%S").time())
-    if t0 > now:
-        t0 -= timedelta(days=1)
+    t0 = last_job_start(text)
+    if t0 is None:
+        t0 = datetime.combine(now.date(), datetime.strptime(starts[0][0], "%H:%M:%S").time())
+        if t0 > now:
+            t0 -= timedelta(days=1)
     deadline = t0 + timedelta(hours=BUDGET_H)
     pulled = sum(sizes.get(s, 0) for s, r in recs.items() if r.get("pull_s") is not None)
     built = sum(r.get("status") == "built" for r in recs.values())
     failed = [s for s, r in recs.items() if r.get("status") not in ("built", "exists")]
     cur = starts[-1][1] if starts[-1][1] not in recs else None
     phase = ""
+    running = subprocess.run(["pgrep", "-f", r"^\S*python\S* -m cueinv\.build_dbs"], capture_output=True).returncode == 0
+    if cur and not running:
+        lines.append(f"STATUS     : job is NOT running (stopped while on {cur}); restart it to resume")
+        cur = None
     if cur:
         have = tags.get(cur, cur) in local_images() or cur in local_images()
         phase = "building DB" if have else "downloading image"
@@ -87,7 +101,8 @@ def snapshot(sizes: dict[str, float], tags: dict[str, str], rate: float | None, 
     lines += [f"projects   : {built} built, {len(failed)} failed, of {len(sizes)}   (started {t0:%H:%M}, elapsed {fmt_td((now - t0).total_seconds())})",
               f"downloaded : {pulled:.2f} / {total_gb:.2f} GB  ({100 * pulled / total_gb:.0f} %)  [compressed sizes from Docker Hub]"]
     if cur:
-        lines.append(f"current    : #{len(starts)} {cur}  ({sizes.get(cur, 0):.2f} GB) — {phase}, since {starts[-1][0]}")
+        pos = list(sizes).index(cur) + 1 if cur in sizes else len(starts)
+        lines.append(f"current    : #{pos} {cur}  ({sizes.get(cur, 0):.2f} GB) — {phase}, since {starts[-1][0]}")
         if phase == "downloading image" and rx_cur is not None and sizes.get(cur):
             lines.append(f"             ≈ {rx_cur / 1e9:.2f} GB received so far (≈ {min(99, 100 * rx_cur / 1e9 / sizes[cur]):.0f} %)")
     elif not failed and built + sum(r.get("status") == "exists" for r in recs.values()) >= len(sizes):

@@ -180,6 +180,7 @@ def main(argv: list[str] | None = None) -> int:
         if new:
             w.writeheader()
         deferred = []
+        print(f"JOB START {datetime.now():%Y-%m-%d %H:%M:%S} max_hours={args.max_hours}", flush=True)
         for row in rows:
             if not db_exists(row["slug"]) and _left(deadline) < MIN_START_MIN * 60:
                 deferred.append(row["slug"])
