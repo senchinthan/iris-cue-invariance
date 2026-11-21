@@ -310,4 +310,4 @@ Windows (`0x24` = SW power cap + SW thermal), so please put the laptop on AC pow
   `build_info.csv` / Docker-tag slug spelling), generate their `package-names/*.txt`, container route only.
 * **Q2 → (a): keep IRIS's fix-commit README for BASE** and pre-register the per-project covariate `readme_mentions_vuln`
   (keyword scan `vulnerab|CVE|security|exploit|upgrade` on `readme_head.txt`), reported alongside `M_README`.
-* **Q3 (approve the §8 interception design): not yet explicitly answered** — confirm before starting Phase 4.
+* **Q3 → approved** (user, 2026-11-21): the §8 interception design is the implementation path.

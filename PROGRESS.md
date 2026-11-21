@@ -24,7 +24,7 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] 2.1 `docs/RECON.md` questions 1–8 with file:line refs, plus quickstart-verified facts (§9 data quirks, §10 plan-vs-repo diffs)
 - [x] 2.2 Interception design written up (RECON §8) + GATE 1 decisions (RECON §11)
 - [x] 2.3 `pytest -q`: 14 passed (incl. byte-for-byte reproduction of IRIS internal prompts); Phase 2 commit
-- [~] **GATE 1** — Q1 answered: keep the 4 annotated CVEs (patch cve_id parsing). Q2 answered: keep fix-commit README + `readme_mentions_vuln` covariate. **Q3 (approve interception design, RECON §8) still open.** User asked to pause the project here (2026-11-20).
+- [x] **GATE 1** — passed. Q1: keep the 4 annotated CVEs (patch cve_id parsing). Q2: keep fix-commit README + `readme_mentions_vuln` covariate. Q3: interception design approved (2026-11-21).
 
 ## Phase 3 — Subset selection
 - [ ] 3.1 `cueinv/select_subset.py`: CWE-22/78 + build success
@@ -89,3 +89,4 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - 2026-11-20 — Phase 1 started. Env verified. IRIS cloned. Ollama serving. Downloads (CodeQL, Miniconda, JDK 8, Maven 3.5.0, models) running over a ~3 MB/s link. RECON draft written while waiting.
 - 2026-11-20 — Phase 1 done (commit `bdf851a`): env, CodeQL, Ollama + models, VRAM check, spark quickstart end-to-end. Phase 2 done: RECON.md + tests. **Stopped at GATE 1.**
 - 2026-11-20 — User answered GATE 1 Q1 (keep CVEs) and Q2 (recommended option). Project **paused** by user before Phase 3; resume notes in `memory.md`.
+- 2026-11-21 — User approved the interception design (GATE 1 Q3) and asked to continue. Machine had restarted: Ollama relaunched in tmux with plan env vars. Docker Desktop not running yet.
