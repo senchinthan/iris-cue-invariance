@@ -47,14 +47,14 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - [x] 5.2 `cueinv/pilot_report.py` → `results/pilot_report.md` (+ schema-vs-free-form diagnostic `cueinv/diag_schema.py`)
 - [x] 5.3 `cueinv/power.py`: binomial + empirical noise models, δ = 0/5/10/15, τ = 0/10, effective N
 - [x] 5.4 Tests pass (37); Phase 5 commit
-- [!] **GATE 2** — **NO-GO as designed**: labels ✅ (443–451 projected) but power ❌ (≤0.06). Cause #1: JSON-schema output empties 38/44 batches (free-form: 0/44; 397 vs 49 labels). D1 → (a) approved 2026-11-21 (drop JSON schema, IRIS parsing). Free-form re-pilot `pilot-ff`: ≈ 3,700 labels projected, 0 parse failures; power ≈ 1.0 (CI>0, 5 pp) with a repeat-only noise floor. **Waiting for D2 (noise floor + rule wording) / D3** — see `docs/GATE2.md`
+- [x] **GATE 2** — **GO** (2026-11-21). D1(a) free-form output + IRIS parse_json; D2 noise floor = repeat (BASE2), SHUF reported separately, plan rule kept with power target at δ = 15 pp; D3 not needed. Free-form re-pilot: ≈ 3,700 labels projected, 0 parse failures
 
 ## Phase 6 — Perturbation layer
-- [ ] 6.1 `cueinv/perturb.py` conditions BASE, SHUF, R_SYN, R_NEU, R_NEU2, R_MIS, D_STRIP, D_MIS, M_README, M_ID, COMBO, H1C
-- [ ] 6.2 Rename inside JavaDoc + README; keep keywords/JDK/external types; bijective map saved per run
-- [ ] 6.3 Map-back failure accounting + token-delta logging
-- [ ] 6.4 Tests: round-trip identity, external byte-identity, no surviving identifiers, SHUF only reorders
-- [ ] 6.5 Phase 6 commit
+- [x] 6.1 `cueinv/perturb.py`: BASE, SHUF, R_SYN, R_NEU, R_NEU2, R_MIS, D_STRIP, D_MIS, M_README, M_ID, COMBO; H1C vote in `cueinv/vote.py`; ABLATION (no internal sources) in `label.py`
+- [x] 6.2 String-level bijective rename across rows, signature types, JavaDoc and README (≥3-char identifiers in prose); keywords/JDK/external types reserved; maps saved to `runs/<run_id>/rename_map/<slug>.json`; R_NEU token-count-matched with the pinned Qwen tokenizer (96–99 % exact; R_NEU2 75–86 %)
+- [x] 6.3 Map-back failure rate per condition (`map_back_failure_rate`, unmapped items/params) + per-batch `token_delta_vs_base`
+- [x] 6.4 Tests (155 in `test_phase6_perturb.py`, 197 total): round-trip identity 100 %, external prompts byte-identical (also vs IRIS's own dump), no surviving identifiers, SHUF only reorders; end-to-end echo dry run: all 13 conditions × 5 pilot projects map back exactly
+- [x] 6.5 Phase 6 commit
 
 ## Phase 7 — Pre-registration
 - [ ] 7.1 `docs/PREREG.md`
@@ -93,3 +93,5 @@ Each GATE is a hard stop: work resumes only after the user approves.
 - 2026-11-21 — Phase 3 (46-project subset, pilot DBs), Phase 4 (client, labelling) and Phase 5 (pilot, report, power, schema A/B) done. **Stopped at GATE 2** (no-go as designed; decisions D1–D3 in docs/GATE2.md).
 - 2026-11-21 — User chose GATE 2 D1(a): free-form output + IRIS parse_json. Implementing and re-running the pilot as campaign `pilot-ff`.
 - 2026-11-21 — Free-form re-pilot internal controls done (`results/pilot_report_pilot-ff.md`); external + detection still running in tmux `pilotff`. Stopped at GATE 2 for D2/D3.
+- 2026-11-21 — GATE 2 passed (D2 recommended options). Starting Phase 6 (perturbation layer).
+- 2026-11-21 — Phase 6 done (perturbation layer, 197 tests). No cue condition was run on real LLM outputs before PREREG (dry run only).

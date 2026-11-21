@@ -68,7 +68,13 @@ you choose D2 (and D3 if needed) with the new numbers → Phase 6.
   `parse_json` (iris.py:484-526), then our batch validation + map-back. This deviates from plan Phase 4 ("format=<JSON schema>")
   and is recorded here and in `docs/RECON.md`. The schema-mode pilot (campaign `pilot`) is kept for the record; the
   free-form pilot is campaign `pilot-ff`.
-* D2, D3: pending — to be decided on the `pilot-ff` numbers.
+* **D2 → recommended** (2026-11-21): noise floor `null(p) = retention(BASE2)` (repeat control) for every cue condition;
+  SHUF is reported as its own batch-composition effect, not part of the noise floor. Decision-rule wording: the plan's rule
+  is kept ("supported" = Δ ≥ 10 pp and the Holm-corrected 95 % CI excludes 0; "falsified" = within ±3 pp), with the power
+  target stated as P(supported) ≥ 0.8 at a true 15-pp drop (met: ≈ 1.0) and P(CI excludes 0) ≥ 0.8 at 10 pp (≈ 1.0).
+  (No separate recommendation had been made between the two wording options; the one closest to the plan was taken.)
+* **D3 → not needed.**
+* **GATE 2 → GO** (2026-11-21).
 
 ## Re-pilot in free-form mode (campaign `pilot-ff`, 2026-11-21) — `results/pilot_report_pilot-ff.md`
 

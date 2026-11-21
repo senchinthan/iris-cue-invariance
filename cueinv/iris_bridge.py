@@ -20,6 +20,7 @@ from cueinv.dataset import Project, iris_owner_name
 from cueinv.perturb import INTERNAL_BATCH_SIZE, Candidate
 
 EXTERNAL_BATCH_SIZE = 30  # iris.py:1330
+PACKAGE_NAMES_DIR = IRIS_ROOT / "data" / "package-names"
 IRIS_SEED = 1234          # iris.py:1329 (only reaches IRIS's own model classes, which we bypass)
 
 
@@ -195,3 +196,20 @@ def iris_parse(text: str | None) -> tuple[list | None, str]:
     if not log.errors:
         return items, "ok"
     return (items, "recovered") if items else (items, "parse_failed")
+
+
+# ---- perturbation context (Phase 6) -----------------------------------------------------------------------------------
+def perturb_context(p):
+    """Project classes (may be renamed when they appear as types) and reserved external class names (never renamed),
+    from IRIS's own stage-1/2 CSVs: rows whose package is in data/package-names/<slug>.txt are internal (iris.py:287-295)."""
+    import pandas as pd
+
+    from cueinv.perturb import JDK_COMMON, PerturbContext
+
+    internal = {x.strip() for x in open(PACKAGE_NAMES_DIR / f"{p.project_name}.txt") if x.strip()}
+    fp = pd.read_csv(p.func_param_path, keep_default_na=False, usecols=["package", "clazz"])
+    ext = pd.read_csv(p.external_apis_csv_path, keep_default_na=False, usecols=["package", "clazz"])
+    project = set(fp[fp["package"].isin(internal)]["clazz"]) | set(ext[ext["package"].isin(internal)]["clazz"])
+    external = set(ext[~ext["package"].isin(internal)]["clazz"])
+    project = {c for c in project if c}
+    return PerturbContext(project_classes=frozenset(project - external), reserved=frozenset(external | JDK_COMMON))
