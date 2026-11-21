@@ -22,3 +22,11 @@ def test_clip_never_exceeds_budget():
     import time
     assert build_dbs._clip(5400, time.time() + 600) <= 600
     assert build_dbs._clip(5400, None) == 5400
+
+
+def test_dl_status_parses_build_log():
+    from cueinv.dl_status import parse_log
+    text = ("[16:09:03] a ...\n    {'slug': 'a', 'image_gb': 0.4, 'status': 'built', 'pull_s': 194}\n"
+            "[16:14:50] b ...\n")
+    starts, recs = parse_log(text)
+    assert [s for _, s in starts] == ["a", "b"] and recs["a"]["pull_s"] == 194 and "b" not in recs
