@@ -24,3 +24,13 @@ data existed at the time. `docs/PREREG.md` §10 lists the deviations from the pl
 * **Rule added:** if IRIS's helpers find no groupId, search `buildSrc/**/*.gradle*` with IRIS's own regex
   (`cueinv/build_dbs.py: buildsrc_group_id`). This finds the project's real groupId.
 * **Effect:** djl gets 171 internal packages (`ai.djl.*`), including `ai.djl.util`, where the fix is (sanity check only).
+
+## D-3 — custom build command for the two spring-cloud-config CVEs (2026-11-22, before any Phase 8 data)
+
+* **What:** CodeQL's autobuild in the IRIS container fails for spring-cloud-config CVE-2020-5405 (both attempts, 09:51 and
+  09:54): the parent `spring-cloud-build` runs Checkstyle even with `-Dcheckstyle.skip`, and the project pom sets
+  `maven-checkstyle-plugin.failsOnViolation=true` with test sources included. Three `JavadocVariable` warnings in test files stop
+  the build. CVE-2020-5410 (the same repository) is expected to fail the same way.
+* **Fix:** a row per slug in IRIS's `data/build_cmds.csv` (`patches/0003`). Each row is autobuild's own Maven command plus
+  `-Dmaven-checkstyle-plugin.failsOnError=false -Dmaven-checkstyle-plugin.failsOnViolation=false`, so the same code is compiled
+  and only the style check stops failing the build. IRIS's script already reads this file (`build_codeql_dbs.py:35,197`).
