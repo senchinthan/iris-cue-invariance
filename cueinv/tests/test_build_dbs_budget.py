@@ -59,3 +59,9 @@ def test_dl_status_retry_supersedes_failure():
     text = "[07:59:00] a ...\n    {'slug': 'a', 'status': 'pull_failed', 'pull_s': 1}\n[08:07:00] a ...\n"
     starts, recs = parse_log(text)
     assert "a" not in recs and starts[-1][1] == "a"
+
+
+def test_dominant_prefix_fallback():
+    pk = [f"com.netflix.conductor.m{i}" for i in range(8)] + ["org.junit.function", "rx.functions"]
+    assert build_dbs.dominant_prefix(pk) == "com.netflix.conductor"
+    assert build_dbs.dominant_prefix(["a.b.c", "d.e.f", "g.h.i"]) is None      # no prefix covers half

@@ -66,6 +66,23 @@ def du_mb(path: Path) -> int:
     return int(out[0]) if out else 0
 
 
+DOMINANT_MIN_SHARE = 0.5
+
+
+def dominant_prefix(packages, depth: int = 3, min_share: float = DOMINANT_MIN_SHARE) -> str | None:
+    """Most common `depth`-segment package prefix if it covers >= min_share of the DB's packages (no ground truth used).
+
+    Fallback for projects whose Maven/Gradle groupId is not their Java package root (conductor: groupId
+    org.conductoross, code in com.netflix.conductor) — the case IRIS's get_packages_codeql.py covers with --internal-package.
+    """
+    from collections import Counter
+    pre = Counter(".".join(x.split(".")[:depth]) for x in packages if x.count(".") >= depth - 1)
+    if not pre:
+        return None
+    top, n = pre.most_common(1)[0]
+    return top if n / len(packages) >= min_share else None
+
+
 def generate_package_names(slug: str, workdir: Path) -> tuple[str, int]:
     """Use IRIS's own helpers from scripts/get_packages_codeql.py, pointed at the container-built DB."""
     out_file = PKG_DIR / f"{slug}.txt"
@@ -88,12 +105,17 @@ def generate_package_names(slug: str, workdir: Path) -> tuple[str, int]:
     finally:
         os.chdir(cwd)
     internal = sorted(g.filter_internal_packages(pkgs, group))
+    how = f"generated(groupId={group})"
     if not internal:
-        return f"no_packages_for_{group}", 0
+        prefix = dominant_prefix(pkgs)
+        if not prefix:
+            return f"no_packages_for_{group}", 0
+        internal = sorted(g.filter_internal_packages(pkgs, prefix))
+        how = f"generated(dominant_prefix={prefix};groupId={group}_matched_none)"
     out_file.write_text("".join(f"{x}\n" for x in internal))
     GENERATED_PKG_COPY.mkdir(parents=True, exist_ok=True)
     shutil.copy(out_file, GENERATED_PKG_COPY / out_file.name)
-    return f"generated(groupId={group})", len(internal)
+    return how, len(internal)
 
 
 def _left(deadline: float | None) -> float:
