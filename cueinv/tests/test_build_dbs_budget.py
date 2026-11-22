@@ -36,3 +36,10 @@ def test_dl_status_uses_latest_job_start():
     from cueinv.dl_status import last_job_start
     t = "JOB START 2026-11-21 16:09:03 max_hours=5.75\n[16:09:03] a ...\nJOB START 2026-11-22 09:00:00 max_hours=5.75\n"
     assert last_job_start(t).isoformat() == "2026-11-22T09:00:00" and last_job_start("[16:09:03] a ...") is None
+
+
+def test_dl_status_rerun_keeps_built_record():
+    from cueinv.dl_status import parse_log
+    text = ("[16:09:03] a ...\n    {'slug': 'a', 'status': 'built', 'pull_s': 194}\n"
+            "JOB START 2026-11-22 05:00:07 max_hours=5.75\n[05:00:07] a ...\n    {'slug': 'a', 'status': 'exists'}\n")
+    assert parse_log(text)[1]["a"] == {"slug": "a", "status": "built", "pull_s": 194}

@@ -46,7 +46,9 @@ def parse_log(text: str) -> tuple[list[tuple[str, str]], dict[str, dict]]:
         elif line.startswith("    {"):
             try:
                 r = ast.literal_eval(line.strip())
-                recs[r["slug"]] = r
+                # a rerun logs already-built projects as "exists"; keep the earlier record (it has the pull time)
+                if not (r.get("status") == "exists" and r["slug"] in recs):
+                    recs[r["slug"]] = r
             except (ValueError, SyntaxError, KeyError):
                 pass
     return starts, recs
@@ -85,7 +87,7 @@ def snapshot(sizes: dict[str, float], tags: dict[str, str], rate: float | None, 
             t0 -= timedelta(days=1)
     deadline = t0 + timedelta(hours=BUDGET_H)
     pulled = sum(sizes.get(s, 0) for s, r in recs.items() if r.get("pull_s") is not None)
-    built = sum(r.get("status") == "built" for r in recs.values())
+    built = sum(s in sizes and r.get("status") in ("built", "exists") for s, r in recs.items())
     failed = [s for s, r in recs.items() if r.get("status") not in ("built", "exists")]
     cur = starts[-1][1] if starts[-1][1] not in recs else None
     phase = ""
