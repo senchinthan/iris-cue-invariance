@@ -83,6 +83,17 @@ def dominant_prefix(packages, depth: int = 3, min_share: float = DOMINANT_MIN_SH
     return top if n / len(packages) >= min_share else None
 
 
+def buildsrc_group_id(src: Path) -> str | None:
+    """groupId set in a Gradle buildSrc convention plugin (djl: buildSrc/.../javaBase.gradle.kts `group = "ai.djl"`),
+    which IRIS's find_gradle_group_id (top-level build.gradle[.kts] only) does not look at. Same regex as IRIS."""
+    import re
+    for f in sorted((src / "buildSrc").rglob("*.gradle*")) if (src / "buildSrc").is_dir() else []:
+        m = re.search(r'^\s*group\s*=\s*[\'"]([^\'"]+)[\'"]', f.read_text(errors="ignore"), re.M)
+        if m:
+            return m.group(1)
+    return None
+
+
 def generate_package_names(slug: str, workdir: Path) -> tuple[str, int]:
     """Use IRIS's own helpers from scripts/get_packages_codeql.py, pointed at the container-built DB."""
     out_file = PKG_DIR / f"{slug}.txt"
@@ -95,6 +106,10 @@ def generate_package_names(slug: str, workdir: Path) -> tuple[str, int]:
 
     src = IRIS_ROOT / "data" / "project-sources" / slug
     group = g.find_maven_group_id(src) or g.find_gradle_group_id(src)
+    group_note = ""
+    if not group:
+        group = buildsrc_group_id(src)
+        group_note = ";from_buildSrc"
     if not group:
         return "no_group_id", 0
     workdir.mkdir(parents=True, exist_ok=True)
@@ -105,7 +120,7 @@ def generate_package_names(slug: str, workdir: Path) -> tuple[str, int]:
     finally:
         os.chdir(cwd)
     internal = sorted(g.filter_internal_packages(pkgs, group))
-    how = f"generated(groupId={group})"
+    how = f"generated(groupId={group}{group_note})"
     if not internal:
         prefix = dominant_prefix(pkgs)
         if not prefix:

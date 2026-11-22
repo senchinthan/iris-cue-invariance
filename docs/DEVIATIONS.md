@@ -15,3 +15,12 @@ data existed at the time. `docs/PREREG.md` §10 lists the deviations from the pl
 * **Effect:** conductor gets 143 internal packages (`com.netflix.conductor.*`). As a sanity check after the fact, both
   fix-location packages (`core.events`, `sdk.workflow.def.tasks`) are in the set. No other project in the subset has needed it so far.
 * **Confirmatory analysis code:** unchanged.
+
+## D-2 — groupId from a Gradle `buildSrc` plugin for djl (2026-11-22, before any Phase 8 data)
+
+* **What:** djl declares `group = "ai.djl"` in a convention plugin (`buildSrc/src/main/kotlin/ai/djl/javaBase.gradle.kts`).
+  IRIS's `find_gradle_group_id` only reads the top-level `build.gradle[.kts]`, so it found no groupId, and the package-names
+  file was not generated.
+* **Rule added:** if IRIS's helpers find no groupId, search `buildSrc/**/*.gradle*` with IRIS's own regex
+  (`cueinv/build_dbs.py: buildsrc_group_id`). This finds the project's real groupId.
+* **Effect:** djl gets 171 internal packages (`ai.djl.*`), including `ai.djl.util`, where the fix is (sanity check only).

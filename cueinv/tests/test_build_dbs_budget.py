@@ -65,3 +65,11 @@ def test_dominant_prefix_fallback():
     pk = [f"com.netflix.conductor.m{i}" for i in range(8)] + ["org.junit.function", "rx.functions"]
     assert build_dbs.dominant_prefix(pk) == "com.netflix.conductor"
     assert build_dbs.dominant_prefix(["a.b.c", "d.e.f", "g.h.i"]) is None      # no prefix covers half
+
+
+def test_buildsrc_group_id(tmp_path):
+    f = tmp_path / "buildSrc" / "src" / "main" / "kotlin" / "ai" / "djl" / "javaBase.gradle.kts"
+    f.parent.mkdir(parents=True)
+    f.write_text('plugins { java }\n\ngroup = "ai.djl"\nversion = "1"\n')
+    assert build_dbs.buildsrc_group_id(tmp_path) == "ai.djl"
+    assert build_dbs.buildsrc_group_id(tmp_path / "nope") is None

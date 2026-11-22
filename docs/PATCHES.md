@@ -18,5 +18,6 @@ Not patches, but local, untracked additions inside `iris/` (all git-ignored by I
   If the groupId prefixes no package in the DB, the most common 3-segment package prefix is used instead when it covers
   ≥ 50 % of the DB's packages (`build_dbs.dominant_prefix`; IRIS's script offers `--internal-package` for this case).
   Only conductor needs it so far (groupId `org.conductoross`, code in `com.netflix.conductor`). See `docs/DEVIATIONS.md` D-1.
+  If no groupId is found at all, it is also searched for in Gradle `buildSrc` scripts (djl; `DEVIATIONS.md` D-2).
 * `iris/codeql/` — CodeQL bundle v2.23.2 (README "Step 3: Configure CodeQL"; `src/config.py:7` expects it there).
 * `iris/data/project-sources/`, `iris/data/codeql-dbs/`, `iris/data/build-info/`, `iris/output/`, `iris/log/` — created by IRIS's scripts at run time.
