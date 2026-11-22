@@ -34,3 +34,18 @@ data existed at the time. `docs/PREREG.md` §10 lists the deviations from the pl
 * **Fix:** a row per slug in IRIS's `data/build_cmds.csv` (`patches/0003`). Each row is autobuild's own Maven command plus
   `-Dmaven-checkstyle-plugin.failsOnError=false -Dmaven-checkstyle-plugin.failsOnViolation=false`, so the same code is compiled
   and only the style check stops failing the build. IRIS's script already reads this file (`build_codeql_dbs.py:35,197`).
+
+## D-4 — Gradle distribution pre-cached in the local venice image (2026-11-22, before any Phase 8 data)
+
+* **What:** venice CVE-2022-36007 failed all 6 build attempts (09:39–09:43 and 12:54–12:58). Inside the container, the Gradle
+  wrapper could not download `gradle-7.4.1-bin.zip`: `services.gradle.org` → `github.com` → `release-assets.githubusercontent.com`
+  ended in `SocketTimeoutException: connect timed out`. Cause: on this network, the GitHub CDN address `185.199.109.133` is
+  unreachable while `.108/.110/.111` work (tested with `curl --resolve`). Java's `HttpURLConnection` only tries the first
+  address DNS returns; curl falls back to the others.
+* **Fix (local environment only):** in a container from the venice image, add a temporary `/etc/hosts` entry pointing to `.110`,
+  then run `./gradlew --version` so the wrapper caches Gradle 7.4.1 in `~/.gradle/wrapper/dists`. The zip's SHA-256
+  `e5444a57cda4a95f90b0c9446a9e1b47d3d7f69057765bfb54bd4f482542d548` equals the official checksum. Then `docker commit`
+  the container over the same tag, keeping its entrypoint, command and working directory. Docker bind-mounts `/etc/hosts`, so the
+  entry is not saved in the image. Image ID before: `sha256:02b94f86…40ad7`; after: `sha256:0192654b…14075`.
+* **Effect:** the build no longer downloads Gradle. The sources, Gradle version and build command are unchanged. To undo:
+  `docker rmi` the tag and pull it again.
