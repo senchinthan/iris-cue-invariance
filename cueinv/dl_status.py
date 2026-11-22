@@ -85,7 +85,8 @@ def snapshot(sizes: dict[str, float], tags: dict[str, str], rate: float | None, 
         t0 = datetime.combine(now.date(), datetime.strptime(starts[0][0], "%H:%M:%S").time())
         if t0 > now:
             t0 -= timedelta(days=1)
-    deadline = t0 + timedelta(hours=BUDGET_H)
+    mh = re.findall(r"^JOB START .* max_hours=([0-9.]+)", text, re.M)
+    deadline = t0 + timedelta(hours=float(mh[-1]) if mh else BUDGET_H)
     pulled = sum(sizes.get(s, 0) for s, r in recs.items() if r.get("pull_s") is not None)
     built = sum(s in sizes and r.get("status") in ("built", "exists") for s, r in recs.items())
     failed = [s for s, r in recs.items() if r.get("status") not in ("built", "exists")]

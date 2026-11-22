@@ -18,6 +18,7 @@ import argparse
 import csv
 import os
 import shutil
+import socket
 import subprocess
 import sys
 import time
@@ -34,6 +35,9 @@ LOG_DIR = CAPSTONE_ROOT / "logs" / "dbs"
 MAX_IMAGE_GB = 5.0  # global rule 4: ask before any single download over 5 GB
 BUILD_ATTEMPTS = 3
 MIN_START_MIN = 20  # do not start a new project with less than this much budget left
+PULL_ATTEMPTS = 3
+NET_HOSTS = ("registry-1.docker.io", "github.com")  # pulls + IRIS's in-container `git clone`
+NET_POLL_S = 30
 FIELDS = ["slug", "docker_tag", "image_gb", "status", "pull_s", "build_s", "db_mb", "package_names", "n_packages",
           "timestamp", "note"]
 
@@ -107,6 +111,28 @@ def _kill_containers(image: str, log: Path) -> None:
         _run(["docker", "rm", "-f", *ids], log)
 
 
+def network_up() -> bool:
+    try:
+        for h in NET_HOSTS:
+            socket.getaddrinfo(h, 443)
+        return True
+    except OSError:
+        return False
+
+
+def wait_for_network(deadline: float | None, log: Path | None = None) -> bool:
+    """Block while DNS is down (a mobile-hotspot drop made 28 pulls fail in 4 minutes on 2026-11-22). False = budget gone."""
+    t0 = time.time()
+    while not network_up():
+        if _left(deadline) < NET_POLL_S:
+            return False
+        if log is not None and time.time() - t0 < NET_POLL_S + 1:
+            with open(log, "a") as f:
+                f.write(f"network down, waiting  [{datetime.now(timezone.utc).isoformat()}]\n")
+        time.sleep(NET_POLL_S)
+    return True
+
+
 def build_one(row: dict, timeout_min: int, keep_image: bool, deadline: float | None = None) -> dict:
     slug, tag = row["slug"], row["docker_tag"] or row["slug"]
     image_gb = float(row["image_gb"]) if row.get("image_gb") else None
@@ -123,8 +149,18 @@ def build_one(row: dict, timeout_min: int, keep_image: bool, deadline: float | N
             return rec
         hub, canon = f"{HUB_REPO}:{tag}", f"{HUB_REPO}:{slug}"
         t0 = time.time()
-        if _run(["docker", "pull", "-q", hub], log, timeout=_clip(3600, deadline)) != 0:
-            rec.update(status="pull_failed", pull_s=round(time.time() - t0))
+        pulled = False
+        for attempt in range(PULL_ATTEMPTS):
+            if not wait_for_network(deadline, log):
+                break
+            if _run(["docker", "pull", "-q", hub], log, timeout=_clip(3600, deadline)) == 0:
+                pulled = True
+                break
+            if _left(deadline) < 120:
+                break
+            time.sleep(60)
+        if not pulled:
+            rec.update(status="pull_failed", pull_s=round(time.time() - t0), note=f"attempts={attempt + 1}")
             return rec
         rec["pull_s"] = round(time.time() - t0)
         if tag != slug:
@@ -134,6 +170,8 @@ def build_one(row: dict, timeout_min: int, keep_image: bool, deadline: float | N
         code, attempts = 1, 0
         t0 = time.time()
         while attempts < BUILD_ATTEMPTS and not db_exists(slug) and _left(deadline) > 60:
+            if not wait_for_network(deadline, log):
+                break
             attempts += 1
             code = _run([sys.executable, "scripts/build_codeql_dbs.py", "--project", slug, "--use-container"], log,
                         cwd=IRIS_ROOT, timeout=_clip(timeout_min * 60, deadline), env=env)

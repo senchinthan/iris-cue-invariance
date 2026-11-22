@@ -43,3 +43,12 @@ def test_dl_status_rerun_keeps_built_record():
     text = ("[16:09:03] a ...\n    {'slug': 'a', 'status': 'built', 'pull_s': 194}\n"
             "JOB START 2026-11-22 05:00:07 max_hours=5.75\n[05:00:07] a ...\n    {'slug': 'a', 'status': 'exists'}\n")
     assert parse_log(text)[1]["a"] == {"slug": "a", "status": "built", "pull_s": 194}
+
+
+def test_wait_for_network_gives_up_at_deadline(monkeypatch):
+    import time
+    monkeypatch.setattr(build_dbs, "network_up", lambda: False)
+    t0 = time.time()
+    assert build_dbs.wait_for_network(time.time() + 5) is False and time.time() - t0 < 2   # < NET_POLL_S left
+    monkeypatch.setattr(build_dbs, "network_up", lambda: True)
+    assert build_dbs.wait_for_network(None) is True
