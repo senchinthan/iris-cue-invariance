@@ -52,3 +52,10 @@ def test_wait_for_network_gives_up_at_deadline(monkeypatch):
     assert build_dbs.wait_for_network(time.time() + 5) is False and time.time() - t0 < 2   # < NET_POLL_S left
     monkeypatch.setattr(build_dbs, "network_up", lambda: True)
     assert build_dbs.wait_for_network(None) is True
+
+
+def test_dl_status_retry_supersedes_failure():
+    from cueinv.dl_status import parse_log
+    text = "[07:59:00] a ...\n    {'slug': 'a', 'status': 'pull_failed', 'pull_s': 1}\n[08:07:00] a ...\n"
+    starts, recs = parse_log(text)
+    assert "a" not in recs and starts[-1][1] == "a"

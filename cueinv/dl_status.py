@@ -43,6 +43,8 @@ def parse_log(text: str) -> tuple[list[tuple[str, str]], dict[str, dict]]:
         m = START_RE.match(line)
         if m:
             starts.append((m.group(1), m.group(2)))
+            if recs.get(m.group(2), {}).get("status") not in (None, "built", "exists"):
+                del recs[m.group(2)]  # a retry supersedes the earlier failure
         elif line.startswith("    {"):
             try:
                 r = ast.literal_eval(line.strip())
@@ -87,9 +89,12 @@ def snapshot(sizes: dict[str, float], tags: dict[str, str], rate: float | None, 
             t0 -= timedelta(days=1)
     mh = re.findall(r"^JOB START .* max_hours=([0-9.]+)", text, re.M)
     deadline = t0 + timedelta(hours=float(mh[-1]) if mh else BUDGET_H)
-    pulled = sum(sizes.get(s, 0) for s, r in recs.items() if r.get("pull_s") is not None)
+    pulled = sum(sizes.get(s, 0) for s, r in recs.items() if r.get("pull_s") is not None and r.get("status") != "pull_failed")
     built = sum(s in sizes and r.get("status") in ("built", "exists") for s, r in recs.items())
-    failed = [s for s, r in recs.items() if r.get("status") not in ("built", "exists")]
+    failed_all = [s for s, r in recs.items() if r.get("status") not in ("built", "exists")]
+    this_run = parse_log(text[text.rfind("JOB START"):] if "JOB START" in text else text)[1]
+    failed = [s for s in failed_all if s in this_run]          # failed in the latest run
+    earlier = [s for s in failed_all if s not in this_run]     # failed before; the latest run retries them
     cur = starts[-1][1] if starts[-1][1] not in recs else None
     phase = ""
     running = subprocess.run(["pgrep", "-f", r"^\S*python\S* -m cueinv\.build_dbs"], capture_output=True).returncode == 0
@@ -101,7 +106,7 @@ def snapshot(sizes: dict[str, float], tags: dict[str, str], rate: float | None, 
         phase = "building DB" if have else "downloading image"
         if have:
             pulled += sizes.get(cur, 0)
-    lines += [f"projects   : {built} built, {len(failed)} failed, of {len(sizes)}   (started {t0:%H:%M}, elapsed {fmt_td((now - t0).total_seconds())})",
+    lines += [f"projects   : {built} built, {len(failed)} failed this run, {len(earlier)} waiting for retry, of {len(sizes)}   (started {t0:%H:%M}, elapsed {fmt_td((now - t0).total_seconds())})",
               f"downloaded : {pulled:.2f} / {total_gb:.2f} GB  ({100 * pulled / total_gb:.0f} %)  [compressed sizes from Docker Hub]"]
     if cur:
         pos = list(sizes).index(cur) + 1 if cur in sizes else len(starts)
