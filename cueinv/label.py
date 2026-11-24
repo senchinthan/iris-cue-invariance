@@ -18,7 +18,8 @@ import time
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from cueinv import RUNS_DIR
+from cueinv import CAPSTONE_ROOT, RUNS_DIR
+from cueinv.fsutil import atomic_copy, atomic_write_text, check_artefact, load_json_or_none, quarantine
 from cueinv import iris_bridge as ib
 from cueinv.dataset import Project
 from cueinv.llm import EXTERNAL_SCHEMA, FAILED_STATUSES, INTERNAL_SCHEMA, IrisModelAdapter, OllamaClient
@@ -75,18 +76,72 @@ class Shared:
 
 _SHARED: dict[tuple[str, str, str], Shared] = {}
 
+READMES_DIR = CAPSTONE_ROOT / "data" / "readmes"  # filled once by `python -m cueinv.prefetch_readmes` (needs internet)
+
+
+class ReadmeUnavailable(RuntimeError):
+    """IRIS could not get the README (network down?). Raised instead of silently prompting without it."""
+
+
+def ensure_readme(p, slug: str) -> str | None:
+    """README head for the prompt, offline-safe: the prefetched copy (data/readmes/) is put in IRIS's cache file, so IRIS
+    reads it instead of downloading. Without a prefetched copy IRIS downloads it (network) and we keep a copy."""
+    stored = READMES_DIR / f"{slug}.txt"
+    meta = load_json_or_none(READMES_DIR / f"{slug}.json") or {}
+    if meta.get("no_readme"):
+        return None  # every README URL answered 404 during the prefetch: IRIS prompts without one, and so do we
+    cache = Path(p.label_func_params_log_path) / "readme_head.txt"
+    if stored.exists():
+        text = stored.read_text()
+        if not cache.exists() or cache.read_text() != text:
+            atomic_write_text(cache, text)
+    readme = ib.readme_summary(p)
+    if readme is None:
+        raise ReadmeUnavailable(f"no README for {slug}: run `python -m cueinv.prefetch_readmes` while online")
+    if not stored.exists():
+        atomic_write_text(stored, readme)
+    return readme
+
 
 def shared_inputs(project: Project, model: str, campaign: str) -> Shared:
     key = (project.slug, model, campaign)
     if key not in _SHARED:
         p = ib.make_pipeline(project, iris_run_id_for(campaign, model), llm_name=llm_name(model))
+        ib.check_iris_artefacts(p)  # files cut short by a power cut are recomputed, not reused
+        restore_api_cache(p, campaign, model)
+        readme = ensure_readme(p, project.slug)
         t0 = time.time()
         ib.collect_candidates(p)
         dt = time.time() - t0
         owner, name = ib.identity(project)
-        _SHARED[key] = Shared(p, ib.internal_candidates(p), ib.readme_summary(p), owner, name,
+        _SHARED[key] = Shared(p, ib.internal_candidates(p), readme, owner, name,
                               ib.n_external_candidates(p), round(dt, 1), ib.perturb_context(p))
     return _SHARED[key]
+
+
+def _api_cache_snapshot(cache: Path, campaign: str) -> Path:
+    """One snapshot per IRIS cache file (they are per IRIS run id x CWE: iris/output/common/<run_id>/cwe-XXX/...)."""
+    return RUNS_DIR / f"{campaign}__state" / "api_labels_cache" / Path(*Path(cache).parts[-3:])
+
+
+def restore_api_cache(p, campaign: str, model: str) -> None:
+    """IRIS's cross-project external-label cache (iris/output/common/.../api_labels_<llm>.json) is rewritten in place after
+    each project, and a damaged cache makes IRIS call exit(1). If it is damaged, put back the snapshot taken after the last
+    completed project. That is exactly the state the interrupted project started from, so its prompts are unchanged."""
+    cache = Path(p.api_labels_cache_path)
+    reason = check_artefact(cache)
+    if reason:
+        quarantine(cache, reason)
+        snap = _api_cache_snapshot(cache, campaign)
+        if snap.exists():
+            atomic_copy(snap, cache)
+            print(f"restored {cache} from {snap}", flush=True)
+
+
+def snapshot_api_cache(p, campaign: str, model: str) -> None:
+    cache = Path(p.api_labels_cache_path)
+    if cache.exists() and check_artefact(cache) is None:
+        atomic_copy(cache, _api_cache_snapshot(cache, campaign))
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -96,8 +151,9 @@ def label_external(project: Project, model: str = PRIMARY_MODEL, campaign: str =
     run_id = run_id_for(campaign, model, "EXT", 1)
     run_dir = RUNS_DIR / run_id
     out = run_dir / "labels" / project.slug / "external.json"
-    if out.exists():
-        return json.loads(out.read_text())
+    done = load_json_or_none(out)
+    if done is not None:
+        return done
     if not (run_dir / "config.json").exists():
         write_config(run_id, model=model, condition="EXT", rep=1, seed=0, campaign=campaign, output=output,
                      note="external labels via IRIS stage 3 with injected client")
@@ -117,8 +173,8 @@ def label_external(project: Project, model: str = PRIMARY_MODEL, campaign: str =
         "external_prompt_sha256": hashes,
         "iris_output_dir": sh.pipeline.project_output_path,
     }
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(summary, indent=2))
+    snapshot_api_cache(sh.pipeline, campaign, model)
+    atomic_write_text(out, json.dumps(summary, indent=2))
     return summary
 
 
@@ -176,12 +232,11 @@ def _write_labels(run_dir: Path, project: Project, sh: Shared, found: dict, stat
     source_params = {(k[0], k[1], k[2], p) for k, v in found.items() for p in v}
     stats.update({"n_methods_labelled": len(labels), "n_source_params": len(source_params)})
     lab_dir.mkdir(parents=True, exist_ok=True)
-    (lab_dir / "llm_labelled_source_func_params.json").write_text(json.dumps(labels, indent=2))
-    (lab_dir / "source_params.json").write_text(json.dumps(sorted(source_params), indent=1))
+    atomic_write_text(lab_dir / "llm_labelled_source_func_params.json", json.dumps(labels, indent=2))
+    atomic_write_text(lab_dir / "source_params.json", json.dumps(sorted(source_params), indent=1))
     if view is not None:
-        (run_dir / "rename_map").mkdir(exist_ok=True)
-        (run_dir / "rename_map" / f"{project.slug}.json").write_text(json.dumps(view.rename_map_json(), indent=1))
-    (lab_dir / "stats.json").write_text(json.dumps(stats, indent=2))
+        atomic_write_text(run_dir / "rename_map" / f"{project.slug}.json", json.dumps(view.rename_map_json(), indent=1))
+    atomic_write_text(lab_dir / "stats.json", json.dumps(stats, indent=2))  # written last = the "done" marker
     return InternalResult(labels, source_params, stats)
 
 
@@ -193,7 +248,7 @@ def _load_result(lab_dir: Path) -> InternalResult:
 
 def base_stats(project: Project, model: str, campaign: str, rep: int = 1) -> dict | None:
     f = RUNS_DIR / run_id_for(campaign, model, "BASE", rep) / "labels" / project.slug / "stats.json"
-    return json.loads(f.read_text()) if f.exists() else None
+    return load_json_or_none(f)
 
 
 def label_internal(project: Project, condition: str, rep: int, model: str = PRIMARY_MODEL,
@@ -207,7 +262,10 @@ def label_internal(project: Project, condition: str, rep: int, model: str = PRIM
         write_config(run_id, model=model, condition=condition, rep=rep, seed=seed, campaign=campaign, output=output,
                      seed_rule="per project: stable_seed(slug, condition); COMBO uses R_NEU's seed")
     if (lab_dir / "stats.json").exists():
-        return _load_result(lab_dir)
+        try:
+            return _load_result(lab_dir)
+        except (OSError, ValueError) as e:  # damaged by a power cut: recompute (the LLM calls come from the cache)
+            print(f"recomputing {lab_dir}: {type(e).__name__}", flush=True)
     base = {"slug": project.slug, "condition": condition, "rep": rep, "model": model, "seed": seed, "output": output,
             "n_internal_candidates": len(sh.candidates), "n_internal_params": sum(len(c.params) for c in sh.candidates),
             "n_external_candidates": sh.n_external_candidates}
@@ -266,8 +324,9 @@ def detect(project: Project, condition: str, rep: int, model: str = PRIMARY_MODE
     """IRIS CodeQL stage (--skip-posthoc-filter) on this condition's internal labels + the shared external labels."""
     run_id = run_id_for(campaign, model, condition, rep)
     out = RUNS_DIR / run_id / "detection" / f"{project.slug}.json"
-    if out.exists():
-        return json.loads(out.read_text())
+    done = load_json_or_none(out)
+    if done is not None:
+        return done
     labels_json = RUNS_DIR / run_id / "labels" / project.slug / "llm_labelled_source_func_params.json"
     if not labels_json.exists():
         raise FileNotFoundError(f"no internal labels for {project.slug} in {run_id}")
@@ -276,6 +335,5 @@ def detect(project: Project, condition: str, rep: int, model: str = PRIMARY_MODE
     res = ib.run_detection(sh.pipeline, project, f"{iris_run_id_for(campaign, model)}-{condition}-r{rep}", labels_json,
                            llm_name=llm_name(model))
     res["detection_s"] = round(time.time() - t0, 1)
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(res, indent=2))
+    atomic_write_text(out, json.dumps(res, indent=2))
     return res

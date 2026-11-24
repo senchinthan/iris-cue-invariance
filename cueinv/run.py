@@ -12,12 +12,14 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import os
 import time
 import traceback
 from datetime import datetime, timezone
 
 from cueinv import RUNS_DIR
 from cueinv.build_dbs import db_exists
+from cueinv.llm import OllamaUnavailable
 from cueinv.dataset import load_projects
 from cueinv.label import DEFAULT_OUTPUT, OUTPUT_MODES, PRIMARY_MODEL, detect, label_external, label_internal
 
@@ -36,7 +38,24 @@ def log_progress(campaign: str, rec: dict) -> None:
     rec = {"timestamp": datetime.now(timezone.utc).isoformat(), **rec}
     with open(RUNS_DIR / f"{campaign}__progress.jsonl", "a") as f:
         f.write(json.dumps(rec) + "\n")
+        f.flush()
+        os.fsync(f.fileno())
     print(json.dumps(rec), flush=True)
+
+
+def interrupted_steps(campaign: str) -> list[dict]:
+    """Steps whose last progress record is 'started' (the process died mid-step: power cut, kill, crash)."""
+    f = RUNS_DIR / f"{campaign}__progress.jsonl"
+    last: dict[tuple, dict] = {}
+    if f.exists():
+        for line in f.read_text().splitlines():
+            try:
+                r = json.loads(line)
+            except ValueError:
+                continue  # a cut-short last line
+            k = (r.get("slug"), r.get("model"), r.get("step"), r.get("condition"), r.get("rep"))
+            last[k] = r
+    return [r for r in last.values() if r.get("status") == "started"]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -57,6 +76,9 @@ def main(argv: list[str] | None = None) -> int:
     plan = parse_condition_reps(args.conditions)
     det = parse_condition_reps(args.detect)
     failures = 0
+    for r in interrupted_steps(args.campaign):
+        print(f"resuming after an interrupted step: {r['slug']} {r['step']} {r.get('condition')} r{r.get('rep')} "
+              f"(started {r['timestamp']})", flush=True)
     for slug in slugs:
         project = by_slug[slug]
         base = {"campaign": args.campaign, "slug": slug, "model": args.model, "output": args.output}
@@ -68,6 +90,7 @@ def main(argv: list[str] | None = None) -> int:
                 [(c, r, "detect") for c, r in det]
         for cond, rep, kind in steps:
             t0 = time.time()
+            log_progress(args.campaign, {**base, "step": kind, "condition": cond, "rep": rep, "status": "started"})
             try:
                 if kind == "external":
                     s = label_external(project, args.model, args.campaign, args.output)
@@ -83,6 +106,12 @@ def main(argv: list[str] | None = None) -> int:
                             "detection_s": s.get("detection_s")}
                 log_progress(args.campaign, {**base, "step": kind, "condition": cond, "rep": rep, "status": "ok",
                                              "s": round(time.time() - t0, 1), **info})
+            except OllamaUnavailable as e:  # the server is gone: stop the part (resume later) instead of failing every step
+                log_progress(args.campaign, {**base, "step": kind, "condition": cond, "rep": rep, "status": "stopped",
+                                             "error": repr(e)[:500]})
+                print("STOPPED: Ollama is not answering. Restart it (memory.md §3) and run the same command again.",
+                      flush=True)
+                return 2
             except Exception as e:  # record and continue with the next step/project
                 failures += 1
                 log_progress(args.campaign, {**base, "step": kind, "condition": cond, "rep": rep, "status": "error",

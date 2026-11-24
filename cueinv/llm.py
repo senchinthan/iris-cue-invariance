@@ -133,14 +133,38 @@ class CallCache:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._lock = threading.Lock()
         self._index: dict[tuple, dict] = {}
+        self.dropped_tail: bytes = b""
         if self.path.exists():
-            with open(self.path) as f:
-                for line in f:
-                    line = line.strip()
-                    if line:
-                        rec = json.loads(line)
-                        if rec.get("kind", "call") == "call":
-                            self._index[self.key(rec["prompt_sha256"], rec["model"], rec["condition"], rec["rep"])] = rec
+            self._load()
+
+    def _load(self) -> None:
+        """Index the cache. A power cut can leave the LAST line cut short: drop it (the call is simply redone) and
+        truncate the file so the next append starts on a fresh line. A damaged line elsewhere is real corruption."""
+        raw = self.path.read_bytes()
+        lines = raw.split(b"\n")
+        good_end = 0
+        for i, line in enumerate(lines):
+            last = i == len(lines) - 1
+            if not line.strip():
+                good_end += len(line) + (0 if last else 1)
+                continue
+            try:
+                rec = json.loads(line)
+            except ValueError:
+                if last or all(not x.strip() for x in lines[i + 1:]):
+                    break  # cut-short tail
+                raise ValueError(f"{self.path}: corrupt line {i + 1} (not the last line)")
+            if last:
+                break  # complete JSON but no newline: also an unfinished append
+            good_end += len(line) + 1
+            if rec.get("kind", "call") == "call":
+                self._index[self.key(rec["prompt_sha256"], rec["model"], rec["condition"], rec["rep"])] = rec
+        if good_end < len(raw):
+            self.dropped_tail = raw[good_end:]
+            with open(self.path, "r+b") as f:
+                f.truncate(good_end)
+                f.flush()
+                os.fsync(f.fileno())
 
     @staticmethod
     def key(prompt_hash: str, model: str, condition: str, rep: int) -> tuple:
@@ -153,6 +177,8 @@ class CallCache:
         with self._lock:
             with open(self.path, "a") as f:
                 f.write(json.dumps(rec, ensure_ascii=False) + "\n")
+                f.flush()
+                os.fsync(f.fileno())  # one LLM call takes seconds; make it survive a power cut
             if rec.get("kind", "call") == "call":
                 self._index[self.key(rec["prompt_sha256"], rec["model"], rec["condition"], rec["rep"])] = rec
 
@@ -160,9 +186,26 @@ class CallCache:
         return len(self._index)
 
 
+class OllamaUnavailable(RuntimeError):
+    """Ollama gave no reply even after waiting for it. Never cached: the call is made again when the run resumes."""
+
+
+SERVER_RETRIES = 3          # transport-level retries per call (these do not count as model attempts)
+SERVER_MAX_WAIT_S = 1800    # how long to wait for Ollama to come back before each retry
+SERVER_POLL_S = 30
+
+
+def ollama_up() -> bool:
+    try:
+        with urllib.request.urlopen(OLLAMA_URL + "/api/version", timeout=5) as r:
+            return r.status == 200
+    except (urllib.error.URLError, TimeoutError, OSError, ValueError):
+        return False
+
+
 class OllamaClient:
     def __init__(self, model: str, run_id: str, *, options: dict | None = None, timeout: float = 1800,
-                 runs_dir: Path = RUNS_DIR, transport=None):
+                 runs_dir: Path = RUNS_DIR, transport=None, probe=None, poll_s: float = SERVER_POLL_S):
         self.model = model
         self.run_id = run_id
         self.options = {**DEFAULT_OPTIONS, **(options or {})}
@@ -170,7 +213,38 @@ class OllamaClient:
         self.timeout = timeout
         self.cache = CallCache(Path(runs_dir) / run_id / "llm_calls.jsonl")
         self._transport = transport or self._http_chat
+        # with a test transport there is no server to wait for
+        self._probe = probe or (ollama_up if transport is None else (lambda: True))
+        self._poll_s = poll_s
         self._warm = False
+
+    def _wait_for_server(self) -> bool:
+        t0 = time.time()
+        while not self._probe():
+            if time.time() - t0 > SERVER_MAX_WAIT_S:
+                return False
+            time.sleep(self._poll_s)
+        return True
+
+    def _call(self, body: dict) -> tuple[dict, str | None, int, float]:
+        """One model reply. A missing reply (Ollama stopped, laptop slept, request timed out, Ollama error JSON) is an
+        environment failure, not a model output: wait for Ollama and ask again; give up with OllamaUnavailable."""
+        last = None
+        for server_try in range(SERVER_RETRIES + 1):
+            t0 = time.time()
+            try:
+                resp = self._transport(body)
+                content = resp.get("message", {}).get("content")
+                if content is not None:
+                    return resp, content, server_try, time.time() - t0
+                last = f"no message in reply: {str(resp.get('error', resp))[:200]}"
+            except (urllib.error.URLError, TimeoutError, OSError, ValueError) as e:
+                last = repr(e)[:300]
+            print(f"Ollama gave no reply ({last}); waiting for it (try {server_try + 1}/{SERVER_RETRIES + 1})", flush=True)
+            self._warm = False
+            if not self._wait_for_server():
+                break
+        raise OllamaUnavailable(f"no reply from Ollama after {SERVER_RETRIES + 1} tries: {last}")
 
     # -- transport -------------------------------------------------------------------------------------------
     def _http_chat(self, body: dict) -> dict:
@@ -192,9 +266,9 @@ class OllamaClient:
     def warmup(self) -> dict:
         """One discarded call after (re)loading the model, logged as kind=warmup with the GPU placement."""
         t0 = time.time()
-        resp = self._transport(self._body([{"role": "user", "content": "Reply with an empty JSON list."}],
-                                          {"type": "array", "items": {"type": "string"}},
-                                          {**self.options, "num_predict": 8}))
+        resp, _, _, _ = self._call(self._body([{"role": "user", "content": "Reply with an empty JSON list."}],
+                                              {"type": "array", "items": {"type": "string"}},
+                                              {**self.options, "num_predict": 8}))
         rec = {"kind": "warmup", "model": self.model, "run_id": self.run_id,
                "timestamp": datetime.now(timezone.utc).isoformat(), "wall_s": round(time.time() - t0, 3),
                "load_duration_s": (resp.get("load_duration") or 0) / 1e9, **gpu_snapshot(self.model)}
@@ -224,22 +298,13 @@ class OllamaClient:
         attempts = []
         content, parsed, status, resp = None, None, "no_response", {}
         for attempt in (1, 2):
-            t0 = time.time()
-            try:
-                resp = self._transport(body)
-                content = resp.get("message", {}).get("content")
-                err = None
-            except (urllib.error.URLError, TimeoutError, OSError, ValueError) as e:
-                resp, content, err = {}, None, repr(e)[:300]
-            wall = time.time() - t0
-            if content is None:
-                parsed, status = None, "no_response"
-            else:
-                parsed, status = parser(content)
-                if resp.get("done_reason") == "length":
-                    status = "truncated"  # cut by num_predict; keep whatever the parser salvaged (IRIS would)
+            resp, content, server_retries, wall = self._call(body)  # raises OllamaUnavailable (nothing is cached)
+            err = None
+            parsed, status = parser(content)
+            if resp.get("done_reason") == "length":
+                status = "truncated"  # cut by num_predict; keep whatever the parser salvaged (IRIS would)
             attempts.append({"attempt": attempt, "parse_status": status, "wall_s": round(wall, 3), "error": err,
-                             "done_reason": resp.get("done_reason")})
+                             "done_reason": resp.get("done_reason"), "server_retries": server_retries})
             if status not in FAILED_STATUSES:
                 break
 

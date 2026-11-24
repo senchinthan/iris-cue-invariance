@@ -135,6 +135,33 @@ SHARED_ARTEFACTS = ("external_apis_csv_path", "candidate_apis_csv_path", "func_p
                     "llm_labelled_source_apis_path", "llm_labelled_sink_apis_path", "llm_labelled_taint_prop_apis_path")
 
 
+# Every IRIS artefact that IRIS reuses when the file exists (iris.py:347-1280). Checked before each stage so that a file cut
+# short by a power cut is recomputed instead of reused (cueinv/fsutil.py).
+CHECKED_ARTEFACTS = SHARED_ARTEFACTS + (
+    "llm_labelled_source_func_params_path", "query_output_result_sarif_path", "query_output_result_csv_path",
+    "query_output_result_sarif_pp_path", "posthoc_filtering_output_result_sarif_path")
+
+
+def check_iris_artefacts(p, log=print) -> list[str]:
+    """Quarantine damaged IRIS artefacts of pipeline `p`; returns the attributes that were moved aside."""
+    from cueinv.fsutil import check_artefact, quarantine
+
+    moved = []
+    for attr in CHECKED_ARTEFACTS:
+        path = getattr(p, attr, None)
+        if not path:
+            continue
+        reason = check_artefact(path)
+        if reason:
+            quarantine(path, reason, log)
+            moved.append(attr)
+    readme = Path(p.label_func_params_log_path) / "readme_head.txt"
+    if readme.exists() and readme.stat().st_size == 0:
+        quarantine(readme, "empty", log)
+        moved.append("readme_head")
+    return moved
+
+
 def run_detection(shared_p, project: Project, iris_run_id: str, internal_labels_json: Path, *, llm_name: str) -> dict:
     """Seed a fresh IRIS run dir with the shared stage 1-3 artefacts and our internal label file, then let IRIS build
     the specs, run CodeQL, post-process and score (RECON §8). Returns IRIS's final results.json."""
@@ -142,6 +169,7 @@ def run_detection(shared_p, project: Project, iris_run_id: str, internal_labels_
     import shutil
 
     p = make_pipeline(project, iris_run_id, llm_name=llm_name)
+    check_iris_artefacts(p)
     for attr in SHARED_ARTEFACTS:
         src, dst = getattr(shared_p, attr), getattr(p, attr)
         if os.path.exists(src) and not os.path.exists(dst):

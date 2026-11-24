@@ -65,6 +65,7 @@ def write_config(run_id: str, runs_dir: Path = RUNS_DIR, **fields) -> Path:
     run_dir = Path(runs_dir) / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
     path = run_dir / "config.json"
-    with open(path, "w") as f:
-        json.dump(build_config(run_id, **fields), f, indent=2)
+    from cueinv.fsutil import atomic_write_text
+
+    atomic_write_text(path, json.dumps(build_config(run_id, **fields), indent=2))
     return path
