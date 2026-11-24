@@ -68,7 +68,7 @@ Each GATE is a hard stop: work resumes only after the user approves.
   | part | what | needs | est. h | command (`python -m cueinv.run --campaign main --projects results/subset.csv …`) |
   |---|---|---|---|---|
   | 0 ✅ 2026-11-24 | README prefetch — 46/46, 0 network errors, 4 from `master` (IRIS fallback: no README at the fix commit), pilot copies identical; frozen in `data/readmes/` | **internet** | < 0.1 | `python -m cueinv.prefetch_readmes --campaign main --models qwen2.5-coder:7b-instruct-q4_K_M qwen3:4b` |
-  | 1 | external labels, primary model | offline | 14.7 | `--external` |
+  | 1 ▶ started 2026-11-24 10:31 UTC (tmux `main`, log `logs/main/part1_external.log`) | external labels, primary model | offline | 14.7 | `--external` |
   | 2a | primary internal: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | 10.8 | `--conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
   | 2b | primary internal: R_SYN, R_NEU2, R_MIS, D_MIS, M_ID, COMBO, H1C, ABLATION | offline | 10.8 | `--conditions R_SYN R_NEU2 R_MIS D_MIS M_ID COMBO H1C ABLATION` |
   | 3 | second model qwen3:4b: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | ≤ 10.8 | `--model qwen3:4b --conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
