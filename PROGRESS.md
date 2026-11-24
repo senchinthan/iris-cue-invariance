@@ -63,7 +63,17 @@ Each GATE is a hard stop: work resumes only after the user approves.
 
 ## Phase 8 — Main runs
 - [x] 8.0 CodeQL DBs for the 41 remaining subset projects — **all 46 subset DBs + package-names files present (2026-11-22 13:43)**; images removed; DBs 1.4 GB. Runs: 2026-11-21 16:09–16:23, 2026-11-22 05:00–07:59, 08:06–10:05 (paused by the user), 12:52–13:43. Fixes: network wait + pull retries, `--max-hours` budget, D-1 conductor package prefix, D-2 djl buildSrc groupId, D-3 `patches/0003` spring-cloud-config Checkstyle, D-4 venice Gradle pre-cache (`docs/DEVIATIONS.md`). Tests 214 passed
-- [ ] 8.1 `cueinv/run.py` (resumable, one project at a time, tmux)
+- [x] 8.1 `cueinv/run.py` (resumable, one project at a time, tmux) + resume safety for power cuts (2026-11-24): crash-safe writes, cut-off cache lines repaired, damaged IRIS files moved to `runs/tmp/quarantine/`, IRIS API-cache snapshot/restore, README prefetch (`cueinv/prefetch_readmes.py`), missing Ollama replies never cached (wait + retry, else stop). Tests 227 passed
+  **Phase 8 runs in parts; each part starts only with the user's permission** (campaign `main`, tmux `main`):
+  | part | what | needs | est. h | command (`python -m cueinv.run --campaign main --projects results/subset.csv …`) |
+  |---|---|---|---|---|
+  | 0 | README prefetch | **internet** | < 0.1 | `python -m cueinv.prefetch_readmes --campaign main --models qwen2.5-coder:7b-instruct-q4_K_M qwen3:4b` |
+  | 1 | external labels, primary model | offline | 14.7 | `--external` |
+  | 2a | primary internal: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | 10.8 | `--conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
+  | 2b | primary internal: R_SYN, R_NEU2, R_MIS, D_MIS, M_ID, COMBO, H1C, ABLATION | offline | 10.8 | `--conditions R_SYN R_NEU2 R_MIS D_MIS M_ID COMBO H1C ABLATION` |
+  | 3 | second model qwen3:4b: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | ≤ 10.8 | `--model qwen3:4b --conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
+  | 4 | detection: BASE, SHUF, COMBO, H1C, ABLATION (needs 1, 2a, 2b) | offline | 7.5 | `--detect BASE SHUF COMBO H1C ABLATION` |
+  | parts done | — | | | |
 - [ ] 8.2 Primary model: external once + all internal conditions (BASE ×2)
 - [ ] 8.3 Second model `qwen3:4b`: BASE ×2, SHUF, R_NEU, D_STRIP, M_README
 - [ ] 8.4 Detection: BASE, SHUF, COMBO, H1C + internal-source ablation
