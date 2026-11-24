@@ -73,7 +73,6 @@ Each GATE is a hard stop: work resumes only after the user approves.
   | 2b | primary internal: R_SYN, R_NEU2, R_MIS, D_MIS, M_ID, COMBO, H1C, ABLATION | offline | 10.8 | `--conditions R_SYN R_NEU2 R_MIS D_MIS M_ID COMBO H1C ABLATION` |
   | 3 | second model qwen3:4b: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | ≤ 10.8 | `--model qwen3:4b --conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
   | 4 | detection: BASE, SHUF, COMBO, H1C, ABLATION (needs 1, 2a, 2b) | offline | 7.5 | `--detect BASE SHUF COMBO H1C ABLATION` |
-  | parts done | — | | | |
 - [ ] 8.2 Primary model: external once + all internal conditions (BASE ×2)
 - [ ] 8.3 Second model `qwen3:4b`: BASE ×2, SHUF, R_NEU, D_STRIP, M_README
 - [ ] 8.4 Detection: BASE, SHUF, COMBO, H1C + internal-source ablation
