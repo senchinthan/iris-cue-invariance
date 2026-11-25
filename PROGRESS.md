@@ -69,7 +69,7 @@ Each GATE is a hard stop: work resumes only after the user approves.
   |---|---|---|---|---|
   | 0 ✅ 2026-11-24 | README prefetch — 46/46, 0 network errors, 4 from `master` (IRIS fallback: no README at the fix commit), pilot copies identical; frozen in `data/readmes/` | **internet** | < 0.1 | `python -m cueinv.prefetch_readmes --campaign main --models qwen2.5-coder:7b-instruct-q4_K_M qwen3:4b` |
   | 1 ✅ 2026-11-24 10:31 → 2026-11-25 02:18 UTC (15 h 47 min, exit 0) | external labels, primary model — 46/46 projects, 2,180 calls (2,148 ok, 30 truncated at 2,048 tokens, 2 parse_failed = 1.5 %), 0 errors, 100 % GPU, one request setting; labels: 3,661 sources, 2,136 sinks, 13,476 taint-propagators | offline | 14.7 | `--external` |
-  | 2a | primary internal: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | 10.8 | `--conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
+  | 2a ▶ started 2026-11-25 10:16 UTC | primary internal: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | 10.8 | `--conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
   | 2b | primary internal: R_SYN, R_NEU2, R_MIS, D_MIS, M_ID, COMBO, H1C, ABLATION | offline | 10.8 | `--conditions R_SYN R_NEU2 R_MIS D_MIS M_ID COMBO H1C ABLATION` |
   | 3 | second model qwen3:4b: BASE×2, SHUF, R_NEU, D_STRIP, M_README | offline | ≤ 10.8 | `--model qwen3:4b --conditions BASE:1,2 SHUF R_NEU D_STRIP M_README` |
   | 4 | detection: BASE, SHUF, COMBO, H1C, ABLATION (needs 1, 2a, 2b) | offline | 7.5 | `--detect BASE SHUF COMBO H1C ABLATION` |
