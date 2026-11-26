@@ -1,0 +1,15 @@
+{
+  "run_id": "main__qwen2.5-coder-7b-instruct-q4_K_M__M_README__r1",
+  "timestamp": "2026-11-25T10:47:27.873997+00:00",
+  "iris_git_sha": "d2059f299a80a68ea4a0b0315eec2f42b8743776-dirty",
+  "cueinv_git_sha": "92c9b82f327256969eb2483462304f7577832a7c-dirty",
+  "ollama_version": "0.40.16",
+  "model": "qwen2.5-coder:7b-instruct-q4_K_M",
+  "model_digest": "dae161e27b0e90dd1856c8bb3209201fd6736d8eb66298e75ed87571486f4364",
+  "condition": "M_README",
+  "rep": 1,
+  "seed": 1541950456,
+  "campaign": "main",
+  "output": "free",
+  "seed_rule": "per project: stable_seed(slug, condition); COMBO uses R_NEU's seed"
+}
